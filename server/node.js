@@ -33,6 +33,15 @@ refresh();
 save();
 const tip = () => chain[chain.length - 1];
 
+// Ai đó sửa tay chain.json khi node đang chạy (kịch bản 5) → đọc lại và kiểm tra ngay
+fs.watchFile(chainFile, { interval: 1000 }, () => {
+  const text = fs.readFileSync(chainFile, 'utf8');
+  if (text === JSON.stringify(chain, null, 2)) return; // chính node vừa ghi file
+  try { chain = JSON.parse(text); } catch { return; } // đang lưu dở, lần sau đọc lại
+  console.log('chain.json vừa bị sửa tay → kiểm tra lại chain');
+  refresh();
+});
+
 // ---------- 3. Mempool và tạo block ----------
 
 // Nhận giao dịch: thử áp lên "state + các giao dịch đang chờ", sai thì ném lỗi
@@ -169,7 +178,8 @@ const routes = [
     needKey(config.adminKey, 'khóa Admin — chỉ node 1 (máy của Bộ GD&ĐT) cấp/gỡ quyền được')))],
   ['DELETE', /^\/issuers\/([^/]+)$/, (b, key) => submit(bc.signTx({ type: 'REMOVE_ISSUER', publicKey: key, timestamp: Date.now() },
     needKey(config.adminKey, 'khóa Admin — chỉ node 1 (máy của Bộ GD&ĐT) cấp/gỡ quyền được')))],
-  // Giả lập tấn công: sửa dữ liệu block cuối ngay trong file chain.json của node này
+  // Giả lập tấn công cho tools/check.js: sửa dữ liệu block cuối ngay trong file chain.json của node này
+  // (khi demo thì sửa tay file chain.json — giao diện không có nút này)
   ['POST', /^\/debug\/tamper$/, () => {
     if (chain.length < 2) throw httpError(400, 'Chưa có block nào ngoài genesis để sửa');
     const tx = tip().transactions[0];

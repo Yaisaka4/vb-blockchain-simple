@@ -194,8 +194,7 @@ async function loadExplorer() {
       box.className = 'node' + (d.valid ? '' : ' invalid');
       box.innerHTML = `<h3>${label}${d.name === label ? '' : ' · ' + esc(d.name)}</h3>
         <b>${d.valid ? '● Chain hợp lệ' : '● Chain KHÔNG hợp lệ'}</b> ${d.valid ? '' : '<br>' + esc(d.error)}
-        <br>Độ cao ${d.height} · chờ ${d.mempool.length} giao dịch
-        <br><button class="danger" data-url="${url}">Giả lập tấn công</button>` +
+        <br>Độ cao ${d.height} · chờ ${d.mempool.length} giao dịch` +
         d.chain.slice(-6).reverse().map((b) => `<div class="block"><b>#${b.index}</b> <span class="mono">…${short(b.hash)}</span><br>
           ${b.transactions.map((t) => esc(t.type + ' ' + (t.certId || t.name || ''))).join('<br>')}</div>`).join('');
     } catch {
@@ -205,10 +204,4 @@ async function loadExplorer() {
   });
 }
 
-// Nút "Giả lập tấn công": bảo node đó tự sửa dữ liệu block cuối của nó
-$('nodes').onclick = async (e) => {
-  if (!e.target.dataset.url) return;
-  await api(e.target.dataset.url, '/debug/tamper', {}).catch((err) => alert(err.message));
-  loadExplorer();
-};
 setInterval(loadExplorer, 2000);
