@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Sơ đồ</title>
+<!-- Các sơ đồ của tài liệu. Sửa chữ/toạ độ trong file này rồi chụp lại thành PNG. -->
+<style>
+  body { margin: 0; padding: 20px; background: #fff; font-family: "Segoe UI", Arial, sans-serif; }
+  svg { display: block; margin-bottom: 40px; background: #fff; }
+  .box { fill: #fff; stroke: #1c2430; stroke-width: 1.5; }
+  .host { fill: #f3f5f8; stroke: #6b7686; stroke-width: 1.5; }
+  .gw { fill: #e8eefb; stroke: #1f5fbf; stroke-width: 2; }
+  .school { fill: #e7f5ec; stroke: #1a7f37; stroke-width: 2; }
+  .reader { fill: #fff4dc; stroke: #9a6200; stroke-width: 2; stroke-dasharray: 6 4; }
+  .bad { fill: #fdecec; stroke: #c62828; stroke-width: 2; }
+  .net { stroke: #1f5fbf; stroke-width: 4; }
+  .line { stroke: #1c2430; stroke-width: 1.5; fill: none; }
+  .dash { stroke: #9a6200; stroke-width: 1.5; fill: none; stroke-dasharray: 6 4; }
+  .sync { stroke: #1a7f37; stroke-width: 1.5; fill: none; }
+  .red { stroke: #c62828; stroke-width: 2; fill: none; }
+  text { font-size: 14px; fill: #1c2430; }
+  .t { font-size: 17px; font-weight: 700; }
+  .b { font-weight: 700; }
+  .s { font-size: 12px; fill: #4a5563; }
+  .m { font-family: Consolas, monospace; font-size: 12px; }
+  .c { text-anchor: middle; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1c2430"/></marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a7f37"/></marker>
+    <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9a6200"/></marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c62828"/></marker>
+  </defs>
+</svg>
+
+<!-- HÌNH 1: SƠ ĐỒ MÁY ẢO -->
+<svg id="h1-may-ao" width="1000" height="430">
+  <text x="500" y="26" class="t c">Hình 1. Các máy ảo trên một máy thật</text>
+  <rect x="20" y="45" width="960" height="370" rx="14" class="host"/>
+  <text x="40" y="72" class="b">Máy thật: laptop Windows + VirtualBox (hypervisor)</text>
+  <text x="40" y="92" class="s">Mỗi máy ảo chạy Ubuntu Server 24.04, 1 CPU, 512 MB RAM</text>
+  <line x1="60" y1="150" x2="940" y2="150" class="net"/>
+  <text x="500" y="138" class="c s">Mạng ảo host-only 192.168.56.0/24 (máy thật = 192.168.56.1, vào được mọi máy ảo)</text>
+
+  <g transform="translate(40,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="line"/>
+    <rect width="140" height="200" rx="10" class="gw"/>
+    <text x="70" y="26" class="b c">VM Gateway</text>
+    <text x="70" y="46" class="m c">192.168.56.10</text>
+    <text x="70" y="80" class="c s">nginx</text>
+    <text x="70" y="98" class="c s">• phục vụ giao diện</text>
+    <text x="70" y="116" class="c s">• cân bằng tải</text>
+    <text x="70" y="134" class="c s">• ab (đo tải)</text>
+  </g>
+  <g transform="translate(200,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="line"/>
+    <rect width="140" height="200" rx="10" class="school"/>
+    <text x="70" y="26" class="b c">VM 1</text>
+    <text x="70" y="46" class="m c">192.168.56.11</text>
+    <text x="70" y="80" class="c">Node 1</text>
+    <text x="70" y="98" class="c b">Đại học A</text>
+    <text x="70" y="126" class="c s">khóa trường A</text>
+    <text x="70" y="144" class="c s">+ khóa Admin (Bộ)</text>
+    <text x="70" y="180" class="c s">chain.json</text>
+  </g>
+  <g transform="translate(360,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="line"/>
+    <rect width="140" height="200" rx="10" class="school"/>
+    <text x="70" y="26" class="b c">VM 2</text>
+    <text x="70" y="46" class="m c">192.168.56.12</text>
+    <text x="70" y="80" class="c">Node 2</text>
+    <text x="70" y="98" class="c b">Đại học B</text>
+    <text x="70" y="126" class="c s">khóa trường B</text>
+    <text x="70" y="180" class="c s">chain.json</text>
+  </g>
+  <g transform="translate(520,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="line"/>
+    <rect width="140" height="200" rx="10" class="school"/>
+    <text x="70" y="26" class="b c">VM 3</text>
+    <text x="70" y="46" class="m c">192.168.56.13</text>
+    <text x="70" y="80" class="c">Node 3</text>
+    <text x="70" y="98" class="c b">Đại học C</text>
+    <text x="70" y="126" class="c s">khóa trường C</text>
+    <text x="70" y="180" class="c s">chain.json</text>
+  </g>
+  <g transform="translate(680,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="dash"/>
+    <rect width="140" height="200" rx="10" class="reader"/>
+    <text x="70" y="26" class="b c">VM Chỉ đọc 1</text>
+    <text x="70" y="46" class="m c">192.168.56.21</text>
+    <text x="70" y="80" class="c">Node chỉ đọc</text>
+    <text x="70" y="98" class="c s">không có khóa</text>
+    <text x="70" y="126" class="c s">clone khi cần</text>
+    <text x="70" y="144" class="c s">mở rộng</text>
+    <text x="70" y="180" class="c s">chain.json</text>
+  </g>
+  <g transform="translate(840,185)">
+    <line x1="70" y1="-35" x2="70" y2="0" class="dash"/>
+    <rect width="120" height="200" rx="10" class="reader"/>
+    <text x="60" y="26" class="b c">Chỉ đọc 2</text>
+    <text x="60" y="46" class="m c">.22</text>
+    <text x="60" y="98" class="c s">(tùy chọn)</text>
+  </g>
+</svg>
+
+<!-- HÌNH 2: KIẾN TRÚC VÀ ĐƯỜNG ĐI CỦA REQUEST -->
+<svg id="h2-kien-truc" width="1000" height="560">
+  <text x="500" y="26" class="t c">Hình 2. Kiến trúc: trình duyệt → gateway → các node</text>
+  <rect x="330" y="45" width="340" height="70" rx="10" class="box"/>
+  <text x="500" y="72" class="b c">Trình duyệt (HTML + CSS + JS)</text>
+  <text x="500" y="94" class="c s">Trường · Người học · Xác minh · Admin · Explorer</text>
+  <line x1="500" y1="115" x2="500" y2="160" class="line" marker-end="url(#arr)"/>
+  <text x="510" y="143" class="s">http://192.168.56.10</text>
+
+  <rect x="230" y="160" width="540" height="120" rx="10" class="gw"/>
+  <text x="500" y="186" class="b c">Gateway — nginx</text>
+  <text x="250" y="214" class="m">/            → file giao diện (index.html, app.js ...)</text>
+  <text x="250" y="236" class="m">/api/...     → chia đều cho nhóm vb_read (đọc: xác minh, tra cứu)</text>
+  <text x="250" y="258" class="m">/n1/ /n2/ /n3/ /r1/ → đúng một node (ghi, Explorer)</text>
+
+  <g transform="translate(60,360)">
+    <rect width="190" height="110" rx="10" class="school"/>
+    <text x="95" y="28" class="b c">Node 1 · ĐH A</text>
+    <text x="95" y="50" class="c s">tạo block khi tới lượt</text>
+    <text x="95" y="70" class="c s">giữ khóa Admin</text>
+    <text x="95" y="96" class="m c">.11:3000</text>
+  </g>
+  <g transform="translate(290,360)">
+    <rect width="190" height="110" rx="10" class="school"/>
+    <text x="95" y="28" class="b c">Node 2 · ĐH B</text>
+    <text x="95" y="50" class="c s">tạo block khi tới lượt</text>
+    <text x="95" y="96" class="m c">.12:3000</text>
+  </g>
+  <g transform="translate(520,360)">
+    <rect width="190" height="110" rx="10" class="school"/>
+    <text x="95" y="28" class="b c">Node 3 · ĐH C</text>
+    <text x="95" y="50" class="c s">tạo block khi tới lượt</text>
+    <text x="95" y="96" class="m c">.13:3000</text>
+  </g>
+  <g transform="translate(760,360)">
+    <rect width="190" height="110" rx="10" class="reader"/>
+    <text x="95" y="28" class="b c">Node chỉ đọc 1, 2</text>
+    <text x="95" y="50" class="c s">chỉ đồng bộ + phục vụ đọc</text>
+    <text x="95" y="96" class="m c">.21, .22:3000</text>
+  </g>
+  <path d="M400,280 L155,360" class="line" marker-end="url(#arr)"/>
+  <path d="M450,280 L385,360" class="line" marker-end="url(#arr)"/>
+  <path d="M550,280 L615,360" class="line" marker-end="url(#arr)"/>
+  <path d="M600,280 L855,360" class="dash" marker-end="url(#arrO)"/>
+  <text x="790" y="318" class="s">thêm khi mở rộng</text>
+
+  <path d="M250,415 L290,415" class="sync" marker-start="url(#arrG)" marker-end="url(#arrG)"/>
+  <path d="M480,415 L520,415" class="sync" marker-start="url(#arrG)" marker-end="url(#arrG)"/>
+  <path d="M155,470 C155,520 615,520 615,470" class="sync" marker-start="url(#arrG)" marker-end="url(#arrG)"/>
+  <path d="M855,470 C855,520 700,520 680,474" class="dash" marker-end="url(#arrO)"/>
+  <text x="868" y="500" class="s">kéo chain</text>
+  <text x="385" y="540" class="c s">Đồng bộ qua HTTP: block mới → POST /blocks sang các trường; mỗi 3 giây GET /chain lấy chain dài nhất hợp lệ</text>
+</svg>
+
+<!-- HÌNH 3: CHUỖI BLOCK -->
+<svg id="h3-chuoi-block" width="1000" height="360">
+  <text x="500" y="26" class="t c">Hình 3. Mỗi block giữ hash của block trước</text>
+  <g transform="translate(20,50)">
+    <rect width="290" height="220" rx="10" class="school"/>
+    <text x="15" y="28" class="b">Block #1</text>
+    <text x="15" y="56" class="m">prevHash: 9c41…(hash #0)</text>
+    <text x="15" y="80" class="m">giao dịch: ADD_ISSUER ĐH A</text>
+    <text x="15" y="104" class="m">merkleRoot: 3d7e…</text>
+    <text x="15" y="128" class="m">validator: khóa ĐH B (đúng lượt)</text>
+    <text x="15" y="152" class="m">chữ ký của ĐH B</text>
+    <rect x="10" y="170" width="270" height="36" rx="6" class="gw"/>
+    <text x="20" y="193" class="m b">hash: a1f0…</text>
+  </g>
+  <g transform="translate(355,50)">
+    <rect width="290" height="220" rx="10" class="bad"/>
+    <text x="15" y="28" class="b">Block #2 (bị sửa)</text>
+    <text x="15" y="56" class="m">prevHash: a1f0…</text>
+    <text x="15" y="80" class="m">ISSUE VB2026-001 docHash: <tspan fill="#c62828" font-weight="700">0000…(giả)</tspan></text>
+    <text x="15" y="104" class="m">merkleRoot: 88f2… <tspan fill="#c62828">≠ tính lại</tspan></text>
+    <text x="15" y="128" class="m">validator: khóa ĐH C</text>
+    <text x="15" y="152" class="m">chữ ký của ĐH C</text>
+    <rect x="10" y="170" width="270" height="36" rx="6" class="gw"/>
+    <text x="20" y="193" class="m b">hash: 5be3…</text>
+  </g>
+  <g transform="translate(690,50)">
+    <rect width="290" height="220" rx="10" class="school"/>
+    <text x="15" y="28" class="b">Block #3</text>
+    <text x="15" y="56" class="m">prevHash: 5be3…</text>
+    <text x="15" y="80" class="m">REVOKE VB2026-001</text>
+    <text x="15" y="104" class="m">merkleRoot: 7a10…</text>
+    <text x="15" y="128" class="m">validator: khóa ĐH A</text>
+    <text x="15" y="152" class="m">chữ ký của ĐH A</text>
+    <rect x="10" y="170" width="270" height="36" rx="6" class="gw"/>
+    <text x="20" y="193" class="m b">hash: e0c9…</text>
+  </g>
+  <path d="M300,243 C330,243 330,107 370,107" class="line" marker-end="url(#arr)"/>
+  <path d="M635,243 C665,243 665,107 705,107" class="line" marker-end="url(#arr)"/>
+  <text x="500" y="300" class="c">Sửa 1 ký tự trong giao dịch của block #2 → Merkle root tính lại không khớp → chain bị đánh dấu KHÔNG hợp lệ.</text>
+  <text x="500" y="324" class="c">Kẻ sửa có tính lại Merkle root và hash thì chữ ký của ĐH C không còn khớp, và prevHash của #3 cũng lệch → vẫn bị phát hiện.</text>
+</svg>
+
+<!-- HÌNH 4: MÁY ẢO VÀ CONTAINER -->
+<svg id="h4-vm-container" width="1000" height="430">
+  <text x="500" y="26" class="t c">Hình 4. Máy ảo (VirtualBox) và container (Docker)</text>
+  <g transform="translate(40,50)">
+    <text x="210" y="16" class="b c">Máy ảo — dự án này dùng</text>
+    <rect x="0" y="30" width="135" height="160" rx="8" class="school"/>
+    <rect x="142" y="30" width="135" height="160" rx="8" class="school"/>
+    <rect x="284" y="30" width="135" height="160" rx="8" class="school"/>
+    <text x="67" y="62" class="c">Node 1</text><text x="67" y="100" class="c s">Node.js</text><text x="67" y="150" class="c b">Ubuntu</text><text x="67" y="168" class="c s">(HĐH riêng)</text>
+    <text x="209" y="62" class="c">Node 2</text><text x="209" y="100" class="c s">Node.js</text><text x="209" y="150" class="c b">Ubuntu</text><text x="209" y="168" class="c s">(HĐH riêng)</text>
+    <text x="351" y="62" class="c">Gateway</text><text x="351" y="100" class="c s">nginx</text><text x="351" y="150" class="c b">Ubuntu</text><text x="351" y="168" class="c s">(HĐH riêng)</text>
+    <rect x="0" y="200" width="419" height="40" rx="8" class="gw"/><text x="210" y="225" class="b c">Hypervisor: VirtualBox</text>
+    <rect x="0" y="250" width="419" height="40" rx="8" class="host"/><text x="210" y="275" class="c">Windows (máy thật)</text>
+    <rect x="0" y="300" width="419" height="34" rx="8" class="box"/><text x="210" y="322" class="c">Phần cứng: CPU, RAM, ổ đĩa</text>
+  </g>
+  <g transform="translate(540,50)">
+    <text x="210" y="16" class="b c">Container — để so sánh trong báo cáo</text>
+    <rect x="0" y="30" width="135" height="110" rx="8" class="reader"/>
+    <rect x="142" y="30" width="135" height="110" rx="8" class="reader"/>
+    <rect x="284" y="30" width="135" height="110" rx="8" class="reader"/>
+    <text x="67" y="62" class="c">Node 1</text><text x="67" y="100" class="c s">Node.js + thư viện</text>
+    <text x="209" y="62" class="c">Node 2</text><text x="209" y="100" class="c s">Node.js + thư viện</text>
+    <text x="351" y="62" class="c">Gateway</text><text x="351" y="100" class="c s">nginx + thư viện</text>
+    <rect x="0" y="150" width="419" height="40" rx="8" class="gw"/><text x="210" y="175" class="b c">Docker Engine</text>
+    <rect x="0" y="200" width="419" height="90" rx="8" class="host"/><text x="210" y="240" class="c">Một hệ điều hành chung (nhân Linux)</text><text x="210" y="262" class="c s">các container dùng chung nhân</text>
+    <rect x="0" y="300" width="419" height="34" rx="8" class="box"/><text x="210" y="322" class="c">Phần cứng: CPU, RAM, ổ đĩa</text>
+  </g>
+  <text x="500" y="415" class="c">Máy ảo: cô lập mạnh, mỗi máy một HĐH, nặng (GB, khởi động ~phút). Container: nhẹ (MB, khởi động ~giây), dùng chung nhân HĐH.</text>
+</svg>
+
+<!-- HÌNH 5: LUỒNG CẤP VÀ XÁC MINH -->
+<svg id="h5-luong" width="1000" height="330">
+  <text x="500" y="26" class="t c">Hình 5. Cấp văn bằng và xác minh văn bằng</text>
+  <text x="20" y="66" class="b">Cấp</text>
+  <g class="row1">
+    <rect x="70" y="45" width="130" height="40" rx="8" class="box"/><text x="135" y="70" class="c">File PDF</text>
+    <rect x="240" y="45" width="130" height="40" rx="8" class="box"/><text x="305" y="70" class="c">SHA-256</text>
+    <rect x="410" y="45" width="150" height="40" rx="8" class="box"/><text x="485" y="70" class="c">ISSUE + chữ ký</text>
+    <rect x="600" y="45" width="130" height="40" rx="8" class="box"/><text x="665" y="70" class="c">Mempool</text>
+    <rect x="770" y="45" width="210" height="40" rx="8" class="school"/><text x="875" y="70" class="c">Block (trường đúng lượt)</text>
+    <path d="M200,65 L240,65" class="line" marker-end="url(#arr)"/>
+    <path d="M370,65 L410,65" class="line" marker-end="url(#arr)"/>
+    <path d="M560,65 L600,65" class="line" marker-end="url(#arr)"/>
+    <path d="M730,65 L770,65" class="line" marker-end="url(#arr)"/>
+  </g>
+  <text x="70" y="112" class="s">Chỉ hash (64 ký tự) lên chain; file PDF trường và người học tự giữ. Block được gửi sang mọi node.</text>
+
+  <text x="20" y="176" class="b">Xác minh</text>
+  <rect x="110" y="155" width="150" height="40" rx="8" class="box"/><text x="185" y="180" class="c">PDF người học gửi</text>
+  <rect x="300" y="155" width="130" height="40" rx="8" class="box"/><text x="365" y="180" class="c">SHA-256</text>
+  <rect x="470" y="155" width="200" height="40" rx="8" class="gw"/><text x="570" y="180" class="c">Tìm hash trên chain</text>
+  <path d="M260,175 L300,175" class="line" marker-end="url(#arr)"/>
+  <path d="M430,175 L470,175" class="line" marker-end="url(#arr)"/>
+  <rect x="740" y="135" width="240" height="34" rx="8" class="school"/><text x="860" y="157" class="c">✅ Có, chưa thu hồi → Hợp lệ</text>
+  <rect x="740" y="177" width="240" height="34" rx="8" class="reader" style="stroke-dasharray:none"/><text x="860" y="199" class="c">⚠️ Có REVOKE → Đã thu hồi</text>
+  <rect x="740" y="219" width="240" height="34" rx="8" class="bad"/><text x="860" y="241" class="c">❌ Không có → Không tìm thấy</text>
+  <path d="M670,175 L740,152" class="line" marker-end="url(#arr)"/>
+  <path d="M670,175 L740,194" class="line" marker-end="url(#arr)"/>
+  <path d="M670,175 L740,236" class="line" marker-end="url(#arr)"/>
+  <text x="110" y="300" class="s">Sửa 1 ký tự trong PDF → hash khác hoàn toàn → "Không tìm thấy". Không cần hỏi lại trường.</text>
+</svg>
+<!-- HÌNH 6: KẾT QUẢ ĐO (trung vị 6 lần đo, ab -n 2000 -c 50, POST /api/verify) -->
+<svg id="h6-do-tai" width="760" height="380">
+  <text x="380" y="26" class="t c">Hình 6. Yêu cầu xác minh xử lý được mỗi giây</text>
+  <g class="s">
+    <!-- trục y: 0..600, 1 đơn vị = 0.45px; gốc y=320 -->
+    <line x1="80" y1="320" x2="720" y2="320" stroke="#8a94a3"/>
+    <line x1="80" y1="230" x2="720" y2="230" stroke="#e3e7ec"/><text x="70" y="234" text-anchor="end" class="s">200</text>
+    <line x1="80" y1="140" x2="720" y2="140" stroke="#e3e7ec"/><text x="70" y="144" text-anchor="end" class="s">400</text>
+    <line x1="80" y1="50" x2="720" y2="50" stroke="#e3e7ec"/><text x="70" y="54" text-anchor="end" class="s">600</text>
+    <text x="70" y="324" text-anchor="end" class="s">0</text>
+  </g>
+  <g fill="#1f5fbf">
+    <path d="M110,320 V226.35 a4,4 0 0 1 4,-4 H186 a4,4 0 0 1 4,4 V320 Z"/>
+    <path d="M238,320 V168.3 a4,4 0 0 1 4,-4 H314 a4,4 0 0 1 4,4 V320 Z"/>
+    <path d="M366,320 V99.45 a4,4 0 0 1 4,-4 H442 a4,4 0 0 1 4,4 V320 Z"/>
+    <path d="M494,320 V140.85 a4,4 0 0 1 4,-4 H570 a4,4 0 0 1 4,4 V320 Z" fill="#7da2db"/>
+    <path d="M622,320 V67.05 a4,4 0 0 1 4,-4 H698 a4,4 0 0 1 4,4 V320 Z"/>
+  </g>
+  <g class="c b">
+    <text x="150" y="214">217</text><text x="278" y="156">346</text><text x="406" y="87">499</text>
+    <text x="534" y="128">407</text><text x="662" y="55">571</text>
+  </g>
+  <g class="c">
+    <text x="150" y="342">1 node</text><text x="278" y="342">2 node</text><text x="406" y="342">3 node</text>
+    <text x="534" y="342">3 + 1 chỉ đọc</text><text x="662" y="342">3 + 2 chỉ đọc</text>
+  </g>
+  <text x="380" y="368" class="c s">Cả 6 máy ảo dùng chung 1 laptop (6 nhân). Cột nhạt: số liệu dao động mạnh vì laptop đã gần hết CPU.</text>
+</svg>
+</body>
+</html>

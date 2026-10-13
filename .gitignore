@@ -1,0 +1,5 @@
+# sinh ra khi chạy tools/setup.js (chứa khóa riêng!) và tools/make-pdf.js
+data/
+web/config.js
+web/samples/
+.vagrant/
