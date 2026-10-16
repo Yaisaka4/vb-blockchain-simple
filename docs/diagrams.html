@@ -263,6 +263,128 @@
   <path d="M670,175 L740,236" class="line" marker-end="url(#arr)"/>
   <text x="110" y="300" class="s">Sửa 1 ký tự trong PDF → hash khác hoàn toàn → "Không tìm thấy". Không cần hỏi lại trường.</text>
 </svg>
+<!-- HÌNH 7: LUỒNG CẤP VĂN BẰNG (sơ đồ tuần tự) -->
+<svg id="h7-luong-cap" width="1000" height="600">
+  <text x="500" y="26" class="t c">Hình 7. Luồng cấp văn bằng (ghi)</text>
+  <!-- các cột: trình duyệt, gateway, node 1..3, chỉ đọc -->
+  <g class="b c">
+    <rect x="30" y="45" width="120" height="40" rx="8" class="box"/><text x="90" y="70">Trình duyệt</text>
+    <rect x="190" y="45" width="120" height="40" rx="8" class="gw"/><text x="250" y="70">Gateway nginx</text>
+    <rect x="360" y="45" width="120" height="40" rx="8" class="school"/><text x="420" y="70">Node 1 · ĐH A</text>
+    <rect x="530" y="45" width="120" height="40" rx="8" class="school"/><text x="590" y="70">Node 2 · ĐH B</text>
+    <rect x="700" y="45" width="120" height="40" rx="8" class="school"/><text x="760" y="70">Node 3 · ĐH C</text>
+    <rect x="860" y="45" width="120" height="40" rx="8" class="reader"/><text x="920" y="70">Node chỉ đọc</text>
+  </g>
+  <g stroke="#b8c2ce" stroke-dasharray="4 4">
+    <line x1="90" y1="85" x2="90" y2="585"/><line x1="250" y1="85" x2="250" y2="585"/>
+    <line x1="420" y1="85" x2="420" y2="585"/><line x1="590" y1="85" x2="590" y2="585"/>
+    <line x1="760" y1="85" x2="760" y2="585"/><line x1="920" y1="85" x2="920" y2="585"/>
+  </g>
+  <!-- 1-2: gửi yêu cầu -->
+  <path d="M90,115 L250,115" class="line" marker-end="url(#arr)"/><text x="98" y="108" class="s">① POST /n1/certificates (PDF)</text>
+  <path d="M250,140 L420,140" class="line" marker-end="url(#arr)"/><text x="258" y="133" class="s">② chuyển đúng node 1</text>
+  <!-- 3: xử lý tại node 1 -->
+  <rect x="345" y="152" width="150" height="62" rx="6" class="school"/>
+  <text x="420" y="171" class="c s">③ băm PDF (SHA-256)</text><text x="420" y="187" class="c s">ký ISSUE bằng khóa A</text><text x="420" y="203" class="c s">kiểm tra luật → mempool</text>
+  <!-- 4: phát giao dịch -->
+  <path d="M420,232 L590,232" class="line" marker-end="url(#arr)"/>
+  <path d="M420,232 C500,232 680,232 760,232" class="line" marker-end="url(#arr)"/>
+  <text x="600" y="225" class="s">④ POST /tx (mọi trường có giao dịch)</text>
+  <!-- 5: trả lời -->
+  <path d="M420,262 L90,262" class="dash" style="stroke:#1c2430" marker-end="url(#arr)"/><text x="160" y="255" class="s">⑤ "✔ Đã nhận, chờ tới lượt tạo block"</text>
+  <!-- 6: PoA -->
+  <rect x="345" y="282" width="490" height="34" rx="6" class="gw"/>
+  <text x="590" y="304" class="c s">⑥ Mỗi giây, mỗi trường hỏi: tới lượt mình chưa? (block số h → trường thứ h mod 3)</text>
+  <!-- 7: node tới lượt đóng block -->
+  <rect x="685" y="330" width="150" height="46" rx="6" class="school"/>
+  <text x="760" y="349" class="c s">⑦ tới lượt (ví dụ ĐH C):</text><text x="760" y="366" class="c s">gói block, ký block</text>
+  <!-- 8: phát block -->
+  <path d="M760,395 L590,395" class="line" marker-end="url(#arr)"/>
+  <path d="M760,395 C680,395 500,395 420,395" class="line" marker-end="url(#arr)"/>
+  <text x="440" y="388" class="s">⑧ POST /blocks</text>
+  <!-- 9: kiểm tra và nối -->
+  <rect x="345" y="408" width="150" height="46" rx="6" class="box"/><text x="420" y="427" class="c s">⑨ kiểm tra hash, Merkle,</text><text x="420" y="444" class="c s">lượt, chữ ký → nối chain</text>
+  <rect x="515" y="408" width="150" height="46" rx="6" class="box"/><text x="590" y="427" class="c s">⑨ kiểm tra hash, Merkle,</text><text x="590" y="444" class="c s">lượt, chữ ký → nối chain</text>
+  <!-- 10: node chỉ đọc kéo chain -->
+  <path d="M920,484 L760,484" class="dash" marker-end="url(#arrO)"/><text x="776" y="477" class="s">⑩ GET /chain (mỗi 3 giây)</text>
+  <path d="M760,510 L920,510" class="dash" marker-end="url(#arrO)"/><text x="790" y="503" class="s">chain mới</text>
+  <rect x="845" y="522" width="150" height="46" rx="6" class="reader" style="stroke-dasharray:none"/><text x="920" y="541" class="c s">⑪ chain dài hơn và</text><text x="920" y="558" class="c s">hợp lệ → lấy về</text>
+  <text x="30" y="560" class="s">Chain chỉ lưu hash của PDF và</text><text x="30" y="576" class="s">hash của mã sinh viên — không lưu file.</text>
+</svg>
+
+<!-- HÌNH 8: LUỒNG XÁC MINH (cân bằng tải) -->
+<svg id="h8-luong-xac-minh" width="1000" height="430">
+  <text x="500" y="26" class="t c">Hình 8. Luồng xác minh (đọc) — nginx chia tải cho mọi node</text>
+  <g transform="translate(20,150)">
+    <rect width="150" height="120" rx="10" class="box"/>
+    <text x="75" y="30" class="b c">Nhà tuyển dụng</text>
+    <text x="75" y="56" class="c s">tải file PDF</text><text x="75" y="74" class="c s">hoặc nhập mã</text><text x="75" y="92" class="c s">văn bằng</text>
+  </g>
+  <path d="M170,210 L230,210" class="line" marker-end="url(#arr)"/><text x="174" y="200" class="s">/api/verify</text>
+  <g transform="translate(230,140)">
+    <rect width="170" height="140" rx="10" class="gw"/>
+    <text x="85" y="28" class="b c">Gateway nginx</text>
+    <text x="85" y="56" class="c s">nhóm vb_read</text><text x="85" y="74" class="c s">chia lần lượt:</text><text x="85" y="92" class="c s">1 → 2 → 3 → 4 → 1 …</text>
+    <text x="85" y="118" class="c s">máy chết → bỏ qua</text>
+  </g>
+  <g class="s">
+    <rect x="470" y="55" width="210" height="60" rx="8" class="school"/><text x="480" y="78" class="b">Node 1 · ĐH A</text><text x="480" y="98">yêu cầu thứ 1, 5, 9 …</text>
+    <rect x="470" y="135" width="210" height="60" rx="8" class="school"/><text x="480" y="158" class="b">Node 2 · ĐH B</text><text x="480" y="178">yêu cầu thứ 2, 6 …</text>
+    <rect x="470" y="215" width="210" height="60" rx="8" class="school"/><text x="480" y="238" class="b">Node 3 · ĐH C</text><text x="480" y="258">yêu cầu thứ 3, 7 …</text>
+    <rect x="470" y="295" width="210" height="60" rx="8" class="reader"/><text x="480" y="318" class="b">Node chỉ đọc (mở rộng)</text><text x="480" y="338">yêu cầu thứ 4, 8 …</text>
+  </g>
+  <path d="M400,195 L470,85" class="line" marker-end="url(#arr)"/>
+  <path d="M400,205 L470,165" class="line" marker-end="url(#arr)"/>
+  <path d="M400,215 L470,245" class="line" marker-end="url(#arr)"/>
+  <path d="M400,225 L470,325" class="dash" marker-end="url(#arrO)"/>
+  <text x="575" y="380" class="c s">Node nào cũng giữ bản sao đầy đủ của chain</text><text x="575" y="396" class="c s">→ node nào cũng trả lời được</text>
+  <g transform="translate(720,60)">
+    <rect width="260" height="300" rx="10" class="host"/>
+    <text x="130" y="26" class="b c">Mỗi node làm:</text>
+    <text x="16" y="54" class="s">1. Băm PDF bằng SHA-256</text>
+    <text x="16" y="76" class="s">2. Tìm hash trong bản sao chain</text>
+    <rect x="12" y="96" width="236" height="40" rx="6" class="school"/><text x="130" y="121" class="c s">có, chưa thu hồi → ✅ Hợp lệ</text>
+    <rect x="12" y="144" width="236" height="40" rx="6" class="reader" style="stroke-dasharray:none"/><text x="130" y="169" class="c s">có REVOKE → ⚠️ Đã thu hồi</text>
+    <rect x="12" y="192" width="236" height="40" rx="6" class="gw"/><text x="130" y="217" class="c s">còn trong mempool → ⏳ Đang chờ</text>
+    <rect x="12" y="240" width="236" height="40" rx="6" class="bad"/><text x="130" y="265" class="c s">không có → ❌ Không tìm thấy</text>
+  </g>
+</svg>
+
+<!-- HÌNH 9: LUỒNG TỰ BẢO VỆ KHI BỊ SỬA DỮ LIỆU -->
+<svg id="h9-tu-bao-ve" width="1000" height="330">
+  <text x="500" y="26" class="t c">Hình 9. Node bị sửa dữ liệu tự phát hiện và tự khôi phục</text>
+  <g transform="translate(20,60)">
+    <rect width="200" height="110" rx="10" class="school"/>
+    <text x="100" y="26" class="b c">Node 2 bình thường</text>
+    <text x="100" y="52" class="c s">chain hợp lệ (xanh)</text><text x="100" y="72" class="c s">giống Node 1, Node 3</text>
+  </g>
+  <g transform="translate(265,60)">
+    <rect width="200" height="110" rx="10" class="box"/>
+    <text x="100" y="26" class="b c">Kẻ tấn công</text>
+    <text x="100" y="52" class="c s">sửa 1 ký tự docHash</text><text x="100" y="72" class="c s">trong chain.json</text><text x="100" y="92" class="c s">(giây 0)</text>
+  </g>
+  <g transform="translate(510,60)">
+    <rect width="210" height="110" rx="10" class="bad"/>
+    <text x="105" y="26" class="b c">Node 2 phát hiện (đỏ)</text>
+    <text x="105" y="50" class="c s">~1 giây: thấy file đổi,</text><text x="105" y="68" class="c s">quét lại chain → Merkle root</text><text x="105" y="86" class="c s">không khớp → KHÔNG hợp lệ,</text><text x="105" y="104" class="c s">ngừng tạo block</text>
+  </g>
+  <g transform="translate(765,60)">
+    <rect width="215" height="110" rx="10" class="school"/>
+    <text x="107" y="26" class="b c">Tự khôi phục (xanh)</text>
+    <text x="107" y="50" class="c s">~6–10 giây: GET /chain</text><text x="107" y="68" class="c s">của Node 1 / Node 3,</text><text x="107" y="86" class="c s">chain hợp lệ → ghi đè file</text>
+  </g>
+  <path d="M220,115 L265,115" class="line" marker-end="url(#arr)"/>
+  <path d="M465,115 L510,115" class="red" marker-end="url(#arrR)"/>
+  <path d="M720,115 L765,115" class="sync" marker-end="url(#arrG)"/>
+  <g transform="translate(20,205)">
+    <rect width="960" height="105" rx="10" class="host"/>
+    <text x="20" y="28" class="b">Cùng cơ chế cho node tắt rồi bật lại / máy ảo mất mạng:</text>
+    <text x="20" y="54" class="s">khởi động → đọc chain.json, kiểm tra lại toàn bộ → hỏi GET /chain của các node khác → chain dài hơn và hợp lệ thì lấy về (kể cả giao dịch đang chờ).</text>
+    <text x="20" y="78" class="s">Luật chọn chain: chỉ nhận chain HỢP LỆ từ genesis; chain dài hơn thắng; chain của mình hỏng thì nhận chain hợp lệ cùng độ dài.</text>
+    <text x="20" y="96" class="s">Vì vậy kẻ tấn công không thể "ép" mạng nhận chain giả: chain giả không qua được bước kiểm tra chữ ký và hash.</text>
+  </g>
+</svg>
+
 <!-- HÌNH 6: KẾT QUẢ ĐO (trung vị 6 lần đo, ab -n 2000 -c 50, POST /api/verify) -->
 <svg id="h6-do-tai" width="760" height="380">
   <text x="380" y="26" class="t c">Hình 6. Yêu cầu xác minh xử lý được mỗi giây</text>
