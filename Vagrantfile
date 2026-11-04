@@ -1,14 +1,11 @@
 # DỰNG TỰ ĐỘNG CÁC MÁY ẢO BẰNG VAGRANT (phụ lục của tài liệu; phần chính hướng dẫn làm tay).
 # Trước khi chạy, trên máy thật:  node tools/setup.js vm
-#   vagrant up gateway node1 node2 node3      → mạng 3 trường + gateway
-#   vagrant up reader1                         → thêm 1 node chỉ đọc (mở rộng)
+#   vagrant up        → gateway + 3 trường. Node backup chạy ngoài máy ảo, trên "VPS" (xem README)
 VMS = {
   "gateway" => ["192.168.56.10", nil],
   "node1"   => ["192.168.56.11", "node1"],
   "node2"   => ["192.168.56.12", "node2"],
   "node3"   => ["192.168.56.13", "node3"],
-  "reader1" => ["192.168.56.21", "reader"],
-  "reader2" => ["192.168.56.22", "reader"],
 }
 
 Vagrant.configure("2") do |config|
@@ -19,7 +16,7 @@ Vagrant.configure("2") do |config|
   end
 
   VMS.each do |name, (ip, data)|
-    config.vm.define name, autostart: !name.start_with?("reader") do |m|
+    config.vm.define name do |m|
       m.vm.hostname = name
       m.vm.network "private_network", ip: ip
       # Gateway nhận MỌI request rồi chuyển tiếp nên cần mạnh hơn các node (đo thấy 1 CPU là nghẽn)

@@ -39,6 +39,9 @@ const files = {
   'VB2026-001-da-sua.pdf': diploma('VB2026-001', 'Dai hoc A', 'Nguyen Van An', 'SV001', '9.5'), // sửa 1 ký tự
   'VB2026-002.pdf': diploma('VB2026-002', 'Dai hoc A', 'Tran Thi Binh', 'SV002', '8.1'),
   'GHOST-001.pdf': diploma('GHOST-001', 'Truong ma', 'Nguoi mua bang', 'SV999', '10.0'),
+  // bằng chứng mẫu cho yêu cầu thu hồi
+  'bien-ban-gian-lan.pdf': makePdf(['BIEN BAN XU LY VI PHAM QUY CHE THI', 'Truong: Dai hoc A', 'Sinh vien: Nguyen Van An (SV001)',
+    'Vi pham: thi ho mon tot nghiep', 'Hinh thuc: huy ket qua, thu hoi van bang VB2026-001']),
 };
 for (const [name, content] of Object.entries(files)) fs.writeFileSync('web/samples/' + name, content);
 console.log('Đã tạo PDF mẫu trong web/samples/:', Object.keys(files).join(', '));

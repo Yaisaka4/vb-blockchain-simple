@@ -117,18 +117,53 @@ test('Mã văn bằng trùng bị từ chối', () => {
   assert.match(n.check().error, /đã tồn tại/);
 });
 
-test('Chỉ trường đã cấp mới thu hồi được', () => {
+// Thu hồi 2 bước: trường cấp gửi yêu cầu kèm hash bằng chứng, trường khác chấp nhận
+const request = (key, extra = {}) => bc.signTx({ type: 'REVOKE_REQUEST', certId: 'VB-1', reason: 'Gian lận',
+  evidenceHash: bc.sha256('bien-ban.pdf'), evidenceName: 'bien-ban.pdf', issuer: key.publicKey, requestedAt: 2, ...extra }, key.privateKey);
+const approve = (key) => bc.signTx({ type: 'REVOKE_APPROVE', certId: 'VB-1', issuer: key.publicKey, approvedAt: 3 }, key.privateKey);
+
+test('Chỉ trường đã cấp mới gửi được yêu cầu thu hồi', () => {
   const n = issued();
-  const B = n.keys[1];
-  n.add([n.grant(B)]);
-  n.add([bc.signTx({ type: 'REVOKE', certId: 'VB-1', reason: 'x', issuer: B.publicKey, revokedAt: 2 }, B.privateKey)]);
+  n.add([request(n.keys[1])]);
   assert.match(n.check().error, /Chỉ trường đã cấp/);
 });
 
-test('Sau REVOKE trạng thái là đã thu hồi, có lý do', () => {
+test('Yêu cầu thu hồi phải có bằng chứng', () => {
   const n = issued();
-  n.add([bc.signTx({ type: 'REVOKE', certId: 'VB-1', reason: 'Gian lận', issuer: n.keys[0].publicKey, revokedAt: 2 }, n.keys[0].privateKey)]);
-  assert.strictEqual(n.check().state.certs['VB-1'].revoked.reason, 'Gian lận');
+  n.add([request(n.keys[0], { evidenceHash: '' })]);
+  assert.match(n.check().error, /bằng chứng/);
+});
+
+test('Có yêu cầu nhưng chưa ai chấp nhận thì văn bằng vẫn hợp lệ', () => {
+  const n = issued();
+  n.add([request(n.keys[0])]);
+  const cert = n.check().state.certs['VB-1'];
+  assert.strictEqual(cert.revoked, null);
+  assert.strictEqual(cert.revokeRequest.reason, 'Gian lận');
+});
+
+test('Trường gửi yêu cầu không được tự chấp nhận', () => {
+  const n = issued();
+  n.add([request(n.keys[0])]);
+  n.add([approve(n.keys[0])]);
+  assert.match(n.check().error, /không được tự duyệt/);
+});
+
+test('Một trường khác chấp nhận (đủ 2/3) → đã thu hồi, có lý do, bằng chứng, người duyệt', () => {
+  const n = issued();
+  n.add([request(n.keys[0])]);
+  n.add([approve(n.keys[2])]);
+  const r = n.check().state.certs['VB-1'].revoked;
+  assert.strictEqual(r.reason, 'Gian lận');
+  assert.strictEqual(r.evidenceHash, bc.sha256('bien-ban.pdf'));
+  assert.deepStrictEqual(r.approvedBy, ['Trường 2']);
+});
+
+test('Khóa ngoài mạng không duyệt được yêu cầu thu hồi', () => {
+  const n = issued();
+  n.add([request(n.keys[0])]);
+  n.add([approve(bc.generateKeys())]);
+  assert.match(n.check().error, /trong mạng/);
 });
 
 test('Genesis khác genesis của mạng bị từ chối', () => {

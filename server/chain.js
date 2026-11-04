@@ -79,6 +79,7 @@ function applyTx(state, tx, blockIndex) {
   if (tx.type === 'GENESIS') {
     state.admin = tx.admin;
     state.validators = tx.validators.map((v) => v.publicKey);
+    state.schoolNames = Object.fromEntries(tx.validators.map((v) => [v.publicKey, v.name]));
     return;
   }
   if (tx.type === 'ADD_ISSUER' || tx.type === 'REMOVE_ISSUER') {
@@ -97,12 +98,35 @@ function applyTx(state, tx, blockIndex) {
     };
     return;
   }
-  if (tx.type === 'REVOKE') {
-    const cert = state.certs[tx.certId];
+  // THU HỒI 2 BƯỚC: trường đã cấp gửi yêu cầu kèm bằng chứng → các trường khác chấp nhận.
+  // Đủ đa số trường trong mạng (tính cả trường gửi yêu cầu) mới chính thức thu hồi.
+  const cert = state.certs[tx.certId];
+  if (tx.type === 'REVOKE_REQUEST') {
     if (!cert) throw new Error('Không tìm thấy văn bằng ' + tx.certId);
-    if (cert.issuer !== tx.issuer) throw new Error('Chỉ trường đã cấp văn bằng mới được thu hồi');
+    if (cert.issuer !== tx.issuer) throw new Error('Chỉ trường đã cấp văn bằng mới được yêu cầu thu hồi');
     if (cert.revoked) throw new Error('Văn bằng ' + tx.certId + ' đã bị thu hồi trước đó');
-    cert.revoked = { reason: tx.reason, revokedAt: tx.revokedAt, blockIndex };
+    if (cert.revokeRequest) throw new Error('Văn bằng ' + tx.certId + ' đang có yêu cầu thu hồi chờ duyệt');
+    if (!tx.reason || !/^[0-9a-f]{64}$/.test(tx.evidenceHash || '')) throw new Error('Yêu cầu thu hồi phải có lý do và bằng chứng');
+    cert.revokeRequest = {
+      reason: tx.reason, evidenceHash: tx.evidenceHash, evidenceName: tx.evidenceName,
+      requester: tx.issuer, requestedAt: tx.requestedAt, approvals: [],
+    };
+    return;
+  }
+  if (tx.type === 'REVOKE_APPROVE') {
+    const req = cert && cert.revokeRequest;
+    if (!req || cert.revoked) throw new Error('Văn bằng ' + tx.certId + ' không có yêu cầu thu hồi đang chờ');
+    if (!state.validators.includes(tx.issuer)) throw new Error('Chỉ các trường trong mạng mới được duyệt yêu cầu thu hồi');
+    if (tx.issuer === req.requester) throw new Error('Trường gửi yêu cầu không được tự duyệt');
+    if (req.approvals.includes(tx.issuer)) throw new Error('Trường này đã chấp nhận yêu cầu rồi');
+    req.approvals.push(tx.issuer);
+    const needed = Math.floor(state.validators.length / 2) + 1; // đa số: 2/3 trường
+    if (1 + req.approvals.length >= needed) {
+      cert.revoked = {
+        reason: req.reason, evidenceHash: req.evidenceHash, revokedAt: tx.approvedAt, blockIndex,
+        approvedBy: req.approvals.map((k) => state.schoolNames[k]),
+      };
+    }
     return;
   }
   throw new Error('Loại giao dịch không hợp lệ: ' + tx.type);

@@ -181,11 +181,32 @@ const routes = [
     return submit(bc.signTx({ type: 'ISSUE', certId: b.certId.trim(), docHash: pdfHash(b.pdfBase64),
       studentRef: bc.sha256(b.studentId.trim() + config.salt), issuer: myKey, issuedAt: Date.now() }, key));
   }],
+  // Yêu cầu thu hồi: file bằng chứng lưu NGOÀI chain, tại máy của trường gửi yêu cầu; chain chỉ giữ hash của file
   ['POST', /^\/certificates\/([^/]+)\/revoke$/, (b, id) => {
     if (!b.reason) throw httpError(400, 'Cần nhập lý do thu hồi');
+    if (!b.evidenceBase64) throw httpError(400, 'Cần tải lên file bằng chứng (PDF hoặc ảnh)');
     const key = needKey(config.privateKey, 'khóa của trường');
-    return submit(bc.signTx({ type: 'REVOKE', certId: id, reason: b.reason, issuer: myKey, revokedAt: Date.now() }, key));
+    const file = Buffer.from(b.evidenceBase64, 'base64');
+    const evidenceHash = bc.sha256(file);
+    const r = submit(bc.signTx({ type: 'REVOKE_REQUEST', certId: id, reason: b.reason, evidenceHash,
+      evidenceName: String(b.evidenceName || 'bang-chung').slice(0, 100), issuer: myKey, requestedAt: Date.now() }, key));
+    fs.mkdirSync(evidenceDir, { recursive: true });
+    fs.writeFileSync(path.join(evidenceDir, evidenceHash), file);
+    return { ...r, message: 'Đã gửi yêu cầu thu hồi, chờ các trường khác xem bằng chứng và chấp nhận' };
   }],
+  // Trường khác chấp nhận yêu cầu thu hồi (ký bằng khóa của chính trường đó)
+  ['POST', /^\/certificates\/([^/]+)\/approve-revoke$/, (b, id) => {
+    const key = needKey(config.privateKey, 'khóa của trường');
+    const r = submit(bc.signTx({ type: 'REVOKE_APPROVE', certId: id, issuer: myKey, approvedAt: Date.now() }, key));
+    return { ...r, message: 'Đã chấp nhận yêu cầu thu hồi ' + id };
+  }],
+  // Các yêu cầu thu hồi đang chờ duyệt (số thứ tự trường = vị trí trong genesis, để giao diện biết hỏi máy nào lấy bằng chứng)
+  ['GET', /^\/revoke-requests$/, () => Object.values(state.certs).filter((c) => c.revokeRequest && !c.revoked).map((c) => ({
+    certId: c.certId, issuerName: c.issuerName, ...c.revokeRequest,
+    requester: state.validators.indexOf(c.revokeRequest.requester),
+    approvals: c.revokeRequest.approvals.map((k) => state.validators.indexOf(k)),
+    needed: Math.floor(state.validators.length / 2) + 1,
+  }))],
   ['POST', /^\/verify$/, (b) => findCert('docHash', pdfHash(b.pdfBase64))],
   ['GET', /^\/certificates\/([^/]+)$/, (b, id) => findCert('certId', id)],
   ['GET', /^\/students\/([^/]+)\/certificates$/, (b, sv) => {
@@ -209,6 +230,22 @@ const routes = [
     return { ok: true, ...status };
   }],
 ];
+
+// File bằng chứng thu hồi: lưu theo hash, trả về nguyên file (PDF/ảnh) để các trường khác mở xem
+const evidenceDir = path.join(dir, 'evidence');
+function serveEvidence(hash, res) {
+  const file = path.join(evidenceDir, hash);
+  if (!fs.existsSync(file)) {
+    res.writeHead(404);
+    return res.end('Không có file bằng chứng này trên máy này');
+  }
+  const req = Object.values(state.certs).map((c) => c.revokeRequest || c.revoked).find((r) => r && r.evidenceHash === hash);
+  const name = (req && req.evidenceName) || '';
+  const ext = path.extname(name).toLowerCase();
+  const type = { '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' }[ext] || 'application/octet-stream';
+  res.writeHead(200, { 'Content-Type': type });
+  fs.createReadStream(file).pipe(res);
+}
 
 // Phục vụ các file giao diện trong thư mục web/ (khi chạy trên 1 máy, không có nginx)
 const webDir = path.join(__dirname, '..', 'web');
@@ -235,6 +272,8 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://x').pathname.replace(/^\/(api|n\d+|r\d+)(?=\/)/, '');
     const route = routes.find(([m, re]) => m === req.method && re.test(url));
+    const evidence = url.match(/^\/evidence\/([0-9a-f]{64})$/);
+    if (evidence && req.method === 'GET') return serveEvidence(evidence[1], res);
     if (!route && req.method === 'GET') return serveWeb(url, res);
     if (!route) throw httpError(404, 'Không có đường dẫn ' + req.method + ' ' + url);
     let raw = '';

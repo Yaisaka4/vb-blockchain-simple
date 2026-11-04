@@ -15,7 +15,8 @@ async function api(node, path, body, method) {
     method: method || (body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json' },
     body: body && JSON.stringify(body),
   });
-  return { http: res.status, ...(await res.json()) };
+  const data = await res.json();
+  return Array.isArray(data) ? data : { http: res.status, ...data };
 }
 
 // Thử lại tới khi điều kiện đúng (tối đa 25 giây) — vì block chỉ được tạo khoảng 5 giây một lần
@@ -47,7 +48,7 @@ async function scenario(name, fn) {
   await scenario('1. Cấp văn bằng và đồng bộ ra mọi node', async () => {
     const r = await api(A, '/certificates', { certId, studentId: 'SV001', pdfBase64: pdf });
     assert.ok(r.ok, r.error);
-    const nodes = [...NET.schools, ...NET.readers];
+    const nodes = [...NET.schools, ...(NET.backup ? [NET.backup] : [])];
     await waitFor(async () => {
       const all = await Promise.all(nodes.map((n) => api(n, '/certificates/' + certId).catch(() => ({}))));
       return all.filter((c) => c.status === 'valid').length >= 3;
@@ -82,9 +83,16 @@ async function scenario(name, fn) {
   });
 
   await scenario('6. Thu hồi văn bằng', async () => {
-    await api(A, `/certificates/${certId}/revoke`, { reason: 'Gian lận thi cử' });
+    // Đại học A gửi yêu cầu kèm bằng chứng → chưa ai duyệt thì vẫn hợp lệ → Đại học B chấp nhận → đã thu hồi
+    const evidence = Buffer.from(diploma('BIEN-BAN-01', 'Dai hoc A', 'Bien ban gian lan', 'SV001', '-')).toString('base64');
+    const req = await api(A, `/certificates/${certId}/revoke`, { reason: 'Gian lận thi cử', evidenceBase64: evidence, evidenceName: 'bien-ban.pdf' });
+    assert.ok(req.ok, req.error);
+    await waitFor(async () => (await api(B, '/revoke-requests')).some((x) => x.certId === certId));
+    assert.strictEqual((await api(NET.api, '/verify', { pdfBase64: pdf })).status, 'valid');
+    const ok = await api(B, `/certificates/${certId}/approve-revoke`, {});
+    assert.ok(ok.ok, ok.error);
     const r = await waitFor(async () => { const x = await api(NET.api, '/verify', { pdfBase64: pdf }); return x.status === 'revoked' && x; });
-    return `đã thu hồi — lý do "${r.revoked.reason}"`;
+    return `đã thu hồi — lý do "${r.revoked.reason}", ${r.revoked.approvedBy.join(', ')} chấp nhận`;
   });
 
   console.log(`\nKết quả: ${passed}/${total} đạt`);
