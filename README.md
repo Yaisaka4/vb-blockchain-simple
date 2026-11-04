@@ -4,7 +4,7 @@
 
 Blockchain tự viết bằng Node.js **không dùng thư viện ngoài** (chỉ `http`, `crypto`), giao diện web **HTML + CSS + JavaScript thuần**, mỗi vai trò một trang riêng. Mỗi trường là một máy ảo giữ bản sao chain; gateway nginx phục vụ giao diện và chia tải xác minh; một **node backup trên VPS** giữ thêm một bản sao ngoài mạng của các trường.
 
-**Tài liệu hướng dẫn đầy đủ cho người mới:** [`docs/Huong-dan-he-thong-van-bang.docx`](docs/Huong-dan-he-thong-van-bang.docx)
+**Tài liệu hướng dẫn đầy đủ cho người mới:** [`docs/Huong-dan-he-thong-van-bang.docx`](docs/Huong-dan-he-thong-van-bang.docx) — đọc kèm [`docs/Huong-dan-phien-ban-2.docx`](docs/Huong-dan-phien-ban-2.docx) (giao diện theo vai trò, thu hồi có bằng chứng và duyệt, node backup trên VPS).
 
 ## Giao diện theo vai trò
 
