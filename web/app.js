@@ -182,7 +182,8 @@ $('adminTable').onclick = async (e) => {
 };
 
 // ---------- 7. Block Explorer: hỏi chain của từng node mỗi 2 giây ----------
-const allNodes = [...NET.schools.map((u, i) => [u, 'Node ' + (i + 1)]), ...NET.readers.map((u, i) => [u, 'Chỉ đọc ' + (i + 1)])];
+const allNodes = [...NET.schools.map((u, i) => [u, 'Node ' + (i + 1)]), ...NET.readers.map((u, i) => [u, 'Chỉ đọc ' + (i + 1)]),
+  ...(NET.backup ? [[NET.backup, 'Backup VPS']] : [])];
 $('nodes').innerHTML = allNodes.map((n, i) => `<div class="node offline" id="node${i}"><h3>${n[1]}</h3>Đang tải…</div>`).join('');
 
 async function loadExplorer() {

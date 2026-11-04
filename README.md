@@ -36,6 +36,31 @@ vagrant up reader1 reader2              # mở rộng, rồi thêm IP vào upstr
 node tools/check.js http://192.168.56.10
 ```
 
+## Node backup trên VPS
+
+Một node chỉ đọc chạy trên VPS ngoài Internet, giữ bản sao chain để phòng khi cả 3 trường mất dữ liệu. VPS không gọi vào được mạng riêng của các trường, nên **các trường tự gửi block và đẩy chain lên VPS** (`POST /chain`); khi một trường mất chain, nó kéo lại từ VPS. Node backup không giữ khóa nào và tắt giả lập tấn công.
+
+```
+# 1. Trên laptop: sinh cấu hình có node backup (thay IP_VPS), rồi cài lại các máy ảo
+node tools/setup.js vm --backup http://IP_VPS:3100
+vagrant up gateway node1 node2 node3 --provision
+
+# 2. Chép code + cấu hình backup lên VPS
+ssh root@IP_VPS "mkdir -p /opt/vb-backup/data/node"
+scp -r server root@IP_VPS:/opt/vb-backup/
+scp data/backup/config.json root@IP_VPS:/opt/vb-backup/data/node/config.json
+scp deploy/vb-backup.service root@IP_VPS:/etc/systemd/system/
+
+# 3. Trên VPS (ssh root@IP_VPS)
+node -v || (curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs)
+useradd -r -s /usr/sbin/nologin vbbackup 2>/dev/null; chown -R vbbackup /opt/vb-backup
+ufw allow 3100/tcp
+systemctl daemon-reload && systemctl enable --now vb-backup
+journalctl -u vb-backup -n 5     # vài giây sau phải thấy "Nhận chain được đẩy tới"
+```
+
+Trên gateway, bỏ dấu `#` ở 2 dòng `IP_VPS` trong `/etc/nginx/sites-available/vb` (dòng `server IP_VPS:3100 backup;` — nginx chỉ chuyển sang VPS khi mọi node trong máy ảo đều không trả lời; và `location /bk/` để Block Explorer hiện cột "Backup VPS"), rồi `sudo nginx -s reload`.
+
 ## Cấu trúc
 
 ```

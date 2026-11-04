@@ -114,8 +114,26 @@ async function sync() {
       // nhận luôn giao dịch đang chờ của peer (phòng khi mình lỡ lúc mất mạng)
       for (const tx of other.mempool) { try { addTx(tx); } catch {} }
       cleanMempool();
+      // Peer tụt lại hoặc hỏng → đẩy chain của mình cho nó. Cần cho node backup trên VPS:
+      // nó ở ngoài Internet nên không tự gọi vào được mạng riêng của các trường để kéo chain về.
+      if (status.valid && (other.chain.length < chain.length || !other.valid)) {
+        fetch(peer + '/chain', { method: 'POST', body: JSON.stringify(chain), signal: AbortSignal.timeout(5000) }).catch(() => {});
+      }
     } catch { /* peer đang tắt: bỏ qua */ }
   }
+}
+
+// Nhận chain do node khác đẩy tới: chỉ thay khi chain đó HỢP LỆ và dài hơn (hoặc chain của mình đang hỏng)
+function receiveChain(other) {
+  const healTime = invalidSince && Date.now() - invalidSince > 6000; // giống sync(): để người xem kịp thấy màu đỏ
+  if (!Array.isArray(other) || !(other.length > chain.length || (healTime && other.length >= chain.length))) return false;
+  if (!bc.validateChain(other, genesis).valid) return false;
+  console.log(`Nhận chain được đẩy tới (độ cao ${other.length - 1})`);
+  chain = other;
+  refresh();
+  cleanMempool();
+  save();
+  return true;
 }
 
 // ---------- 5. Các hàm phục vụ API ----------
@@ -156,6 +174,7 @@ const routes = [
   ['GET', /^\/chain$/, () => ({ name, readonly: !!config.readonly, height: tip().index, ...status, chain, mempool })],
   ['POST', /^\/tx$/, (tx) => ({ ok: addTx(tx) })],
   ['POST', /^\/blocks$/, (block) => ({ ok: receiveBlock(block) })],
+  ['POST', /^\/chain$/, (other) => ({ ok: receiveChain(other) })],
   ['POST', /^\/certificates$/, (b) => {
     if (!b.certId || !b.studentId) throw httpError(400, 'Cần mã văn bằng và mã sinh viên');
     const key = needKey(config.privateKey, 'khóa của trường');
@@ -181,6 +200,7 @@ const routes = [
   // Giả lập tấn công cho tools/check.js: sửa dữ liệu block cuối ngay trong file chain.json của node này
   // (khi demo thì sửa tay file chain.json — giao diện không có nút này)
   ['POST', /^\/debug\/tamper$/, () => {
+    if (config.noDebug) throw httpError(403, 'Node này tắt chức năng giả lập tấn công'); // node trên Internet
     if (chain.length < 2) throw httpError(400, 'Chưa có block nào ngoài genesis để sửa');
     const tx = tip().transactions[0];
     tx.docHash = bc.sha256('bằng giả ' + Date.now());
