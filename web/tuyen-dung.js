@@ -1,8 +1,9 @@
-// TRANG NHÀ TUYỂN DỤNG: xác minh bằng file PDF hoặc mã văn bằng. Đọc qua NET.api (bộ cân bằng tải).
+// TRANG NHÀ TUYỂN DỤNG: xác minh bằng file PDF hoặc mã văn bằng.
+// Đọc từ chính node đang mở trang này: node 1 tắt thì mở trang từ node khác (kể cả node backup, cổng 3100).
 
 $('pdf').onchange = async (e) => {
   try {
-    $('pdfResult').innerHTML = certHtml(await api(NET.api, '/verify', { pdfBase64: await readFile(e.target.files[0]) }));
+    $('pdfResult').innerHTML = certHtml(await api(location.origin, '/verify', { pdfBase64: await readFile(e.target.files[0]) }));
   } catch (err) {
     $('pdfResult').innerHTML = `<p class="bad">${esc(err.message)}</p>`;
   }
@@ -10,7 +11,7 @@ $('pdf').onchange = async (e) => {
 
 async function lookup(certId) {
   try {
-    $('lookupResult').innerHTML = certHtml(await api(NET.api, '/certificates/' + encodeURIComponent(certId)));
+    $('lookupResult').innerHTML = certHtml(await api(location.origin, '/certificates/' + encodeURIComponent(certId)));
   } catch (err) {
     $('lookupResult').innerHTML = `<p class="bad">${esc(err.message)}</p>`;
   }

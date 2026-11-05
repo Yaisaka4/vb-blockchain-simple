@@ -1,5 +1,5 @@
 // DÙNG CHUNG CHO MỌI TRANG: gọi API, đọc file, hiện kết quả.
-// NET (trong config.js) = địa chỉ các node: NET.api (đọc, qua bộ cân bằng tải), NET.schools (3 trường), NET.backup.
+// NET (trong config.js) = địa chỉ các node: NET.schools (3 trường), NET.backup.
 
 // Gọi API của một node. Lỗi HTTP → ném Error mang lời nhắn của node.
 async function api(base, path, body, method) {

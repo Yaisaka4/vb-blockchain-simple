@@ -3,7 +3,7 @@
 $('lookupForm').onsubmit = async (e) => {
   e.preventDefault();
   try {
-    const certs = await api(NET.api, `/students/${encodeURIComponent(e.target.studentId.value)}/certificates`);
+    const certs = await api(location.origin, `/students/${encodeURIComponent(e.target.studentId.value)}/certificates`);
     $('list').innerHTML = certs.length
       ? '<table><tr><th>Mã văn bằng</th><th>Trường</th><th>Ngày cấp</th><th>Trạng thái</th><th></th></tr>' + certs.map((c) =>
         `<tr><td>${esc(c.certId)}</td><td>${esc(c.issuerName)}</td><td>${time(c.issuedAt)}</td>

@@ -247,7 +247,7 @@ function serveEvidence(hash, res) {
   fs.createReadStream(file).pipe(res);
 }
 
-// Phục vụ các file giao diện trong thư mục web/ (khi chạy trên 1 máy, không có nginx)
+// Phục vụ các file giao diện trong thư mục web/
 const webDir = path.join(__dirname, '..', 'web');
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.pdf': 'application/pdf' };
 function serveWeb(url, res) {

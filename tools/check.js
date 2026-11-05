@@ -1,17 +1,15 @@
 // TỰ CHẠY 6 KỊCH BẢN DEMO QUA API và báo ĐẠT/LỖI.
-//   Trên 1 máy:   node tools/check.js
-//   Máy ảo:       node tools/check.js http://192.168.56.10      (địa chỉ VM gateway)
+//   node tools/check.js
 const fs = require('fs');
 const assert = require('assert');
 const { diploma } = require('./make-pdf');
 
-const base = process.argv[2] || '';
 const NET = JSON.parse(fs.readFileSync('web/config.js', 'utf8').split('=')[1].trim().replace(/;$/, ''));
 const [A, B, C] = NET.schools;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function api(node, path, body, method) {
-  const res = await fetch(base + node + path, {
+  const res = await fetch(node + path, {
     method: method || (body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json' },
     body: body && JSON.stringify(body),
   });
@@ -41,7 +39,7 @@ async function scenario(name, fn) {
     const refused = await api(B, '/issuers', { publicKey: schools[1].publicKey, name: schools[1].name });
     assert.strictEqual(refused.http, 403);
     if (!issuers[schools[0].publicKey]) await api(A, '/issuers', { publicKey: schools[0].publicKey, name: schools[0].name });
-    await waitFor(async () => (await api(NET.api, '/issuers')).issuers[schools[0].publicKey]);
+    await waitFor(async () => (await api(A,'/issuers')).issuers[schools[0].publicKey]);
     return 'node 2 bị từ chối: ' + refused.error;
   });
 
@@ -58,13 +56,13 @@ async function scenario(name, fn) {
   });
 
   await scenario('2. Xác minh PDF thật', async () => {
-    const r = await api(NET.api, '/verify', { pdfBase64: pdf });
+    const r = await api(A,'/verify', { pdfBase64: pdf });
     assert.strictEqual(r.status, 'valid');
     return `hợp lệ — ${r.issuerName}, block #${r.blockIndex}`;
   });
 
   await scenario('3. PDF bị sửa 1 ký tự', async () => {
-    assert.strictEqual((await api(NET.api, '/verify', { pdfBase64: fake })).status, 'not_found');
+    assert.strictEqual((await api(A,'/verify', { pdfBase64: fake })).status, 'not_found');
     return 'không tìm thấy (hash khác)';
   });
 
@@ -88,10 +86,10 @@ async function scenario(name, fn) {
     const req = await api(A, `/certificates/${certId}/revoke`, { reason: 'Gian lận thi cử', evidenceBase64: evidence, evidenceName: 'bien-ban.pdf' });
     assert.ok(req.ok, req.error);
     await waitFor(async () => (await api(B, '/revoke-requests')).some((x) => x.certId === certId));
-    assert.strictEqual((await api(NET.api, '/verify', { pdfBase64: pdf })).status, 'valid');
+    assert.strictEqual((await api(A,'/verify', { pdfBase64: pdf })).status, 'valid');
     const ok = await api(B, `/certificates/${certId}/approve-revoke`, {});
     assert.ok(ok.ok, ok.error);
-    const r = await waitFor(async () => { const x = await api(NET.api, '/verify', { pdfBase64: pdf }); return x.status === 'revoked' && x; });
+    const r = await waitFor(async () => { const x = await api(A,'/verify', { pdfBase64: pdf }); return x.status === 'revoked' && x; });
     return `đã thu hồi — lý do "${r.revoked.reason}", ${r.revoked.approvedBy.join(', ')} chấp nhận`;
   });
 

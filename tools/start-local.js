@@ -1,5 +1,5 @@
-// CHẠY CẢ MẠNG TRÊN 1 MÁY (để học, trước khi lên máy ảo): node tools/start-local.js
-// Cần chạy "node tools/setup.js local" trước. Ctrl+C để tắt hết.
+// CHẠY CẢ MẠNG TRÊN 1 MÁY: node tools/start-local.js
+// Cần chạy "node tools/setup.js" trước. Ctrl+C để tắt hết.
 const { spawn } = require('child_process');
 const fs = require('fs');
 
