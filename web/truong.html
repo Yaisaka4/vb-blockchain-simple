@@ -9,10 +9,15 @@
 <body class="truong">
   <header class="bar">
     <a href="index.html">← Trang chủ</a>
-    <h1>Trường đại học</h1>
-    <label class="who">Đăng nhập là <select id="school"></select> <span id="schoolInfo"></span></label>
+    <h1 id="title">Trường đại học</h1>
+    <span class="who" id="nodeInfo"></span>
   </header>
-  <main>
+  <!-- Chưa chọn trường: chỉ hiện danh sách trường. Chọn xong, trang khóa vào đúng node của trường đó (?truong=1|2|3). -->
+  <main id="choose" hidden>
+    <h2>Bạn là trường nào?</h2>
+    <div class="roles" id="schoolLinks"></div>
+  </main>
+  <main id="page" hidden>
     <div class="cards">
       <form id="issueForm" class="card">
         <h2>Cấp văn bằng</h2>

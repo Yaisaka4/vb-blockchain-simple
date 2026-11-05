@@ -1,27 +1,37 @@
 // TRANG TRƯỜNG: cấp văn bằng, yêu cầu thu hồi (kèm bằng chứng), duyệt yêu cầu thu hồi của trường khác.
 // Yêu cầu ghi gửi thẳng tới node của trường đang chọn (khóa trường nằm ở đó).
 
-// Ô "Đăng nhập là": 3 trường; nhớ lựa chọn trong trình duyệt cho lần sau
-NET.schools.forEach((url, i) => $('school').add(new Option(SCHOOL_NAMES[i], url)));
-try { $('school').value = localStorage.getItem('school') || NET.schools[0]; } catch {}
-const node = () => $('school').value;
-const me = () => NET.schools.indexOf(node()); // số thứ tự trường đang đăng nhập (0, 1, 2)
+// Trang khóa vào ĐÚNG MỘT trường theo địa chỉ: truong.html?truong=1 (Đại học A), 2, 3.
+// Mọi thao tác chỉ gửi tới node của trường đó; chưa chọn thì chỉ hiện danh sách trường để chọn.
+const idx = Number(new URLSearchParams(location.search).get('truong')) - 1;
+const node = () => NET.schools[idx];
+const me = () => idx;
 
+if (NET.schools[idx]) {
+  $('page').hidden = false;
+  $('title').textContent = SCHOOL_NAMES[idx];
+  document.title = SCHOOL_NAMES[idx] + ' — Xác thực văn bằng';
+  refresh();
+  setInterval(refresh, 3000);
+} else {
+  $('choose').hidden = false;
+  $('schoolLinks').innerHTML = SCHOOL_NAMES.map((name, i) =>
+    `<a class="role truong" href="truong.html?truong=${i + 1}"><b>${name}</b><span>Đăng nhập — làm việc trên node ${i + 1} của trường</span></a>`).join('');
+}
+
+// Thanh tiêu đề chỉ hiện node của trường này: độ cao, hợp lệ, quyền phát hành
 async function refresh() {
-  try { localStorage.setItem('school', node()); } catch {}
   try {
     const info = await api(node(), '/info');
-    $('schoolInfo').innerHTML = info.isIssuer ? '<span class="ok">có quyền phát hành</span>'
-      : '<span class="bad">chưa được Bộ cấp quyền</span>';
-    loadIssued();
+    $('nodeInfo').innerHTML = `Node ${idx + 1} · độ cao ${info.height} · ${info.valid ? '● hợp lệ' : '● KHÔNG hợp lệ'} · `
+      + (info.isIssuer ? '<span class="ok">có quyền phát hành</span>' : '<span class="bad">chưa được Bộ cấp quyền</span>')
+      + ' · <a href="truong.html">Đổi trường</a>';
     loadRequests();
   } catch {
-    $('schoolInfo').innerHTML = '<span class="bad">máy của trường đang tắt</span>';
+    $('nodeInfo').innerHTML = `<span class="bad">Node ${idx + 1} (máy của trường) đang tắt</span> · <a href="truong.html">Đổi trường</a>`;
   }
 }
-$('school').onchange = refresh;
-refresh();
-setInterval(loadRequests, 3000);
+if (NET.schools[idx]) loadIssued();
 
 // Văn bằng do trường này cấp: lấy giao dịch ISSUE của trường trong chain, hỏi trạng thái từng văn bằng
 async function loadIssued() {

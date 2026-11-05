@@ -2,6 +2,10 @@
 const BO = NET.schools[0];
 
 async function load() {
+  const info = await api(BO, '/info').catch(() => null);
+  $('nodeInfo').innerHTML = info
+    ? `Node 1 (máy của Bộ) · độ cao ${info.height} · ${info.valid ? '● hợp lệ' : '● KHÔNG hợp lệ'}`
+    : '<span class="bad">Node 1 (máy của Bộ) đang tắt</span>';
   const { issuers, schools } = await api(BO, '/issuers');
   $('table').innerHTML = schools.map((s) => {
     const has = issuers[s.publicKey];
