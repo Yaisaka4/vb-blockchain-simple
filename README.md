@@ -6,28 +6,42 @@ Blockchain tự viết bằng Node.js **không dùng thư viện ngoài** (chỉ
 
 **Tài liệu hướng dẫn đầy đủ cho người mới:** [`docs/Huong-dan-he-thong-van-bang.docx`](docs/Huong-dan-he-thong-van-bang.docx).
 
-## Giao diện theo vai trò
+## Giao diện React (Apple Design + shadcn/ui + Zod + JWT Auth)
 
-| Trang | Vai trò | Làm gì |
+| Đường dẫn | Phân quyền | Chức năng |
 |---|---|---|
-| `index.html` | — | Trang chủ: chọn vai trò |
-| `bo.html` | Bộ GD&ĐT | Cấp / gỡ quyền phát hành của các trường |
-| `truong.html` | Trường đại học | Chọn trường, cấp văn bằng, yêu cầu và duyệt thu hồi |
-| `sinh-vien.html` | Sinh viên | Tra văn bằng bằng mã SV, tạo link + QR |
-| `tuyen-dung.html` | Nhà tuyển dụng | Xác minh bằng file PDF hoặc mã văn bằng (mở thẳng từ link/QR) |
-| `explorer.html` | Kỹ thuật | Chain trên từng node: 3 trường + backup |
+| `/` | Công khai | Trang tổng quan, trạng thái trực tuyến 4 node, lối vào các phân hệ |
+| `/login` | Công khai | Đăng nhập JWT (`accessToken` + `refreshToken` rotation), chọn nhanh tài khoản demo |
+| `/ministry` | Role `ministry` (`bo.gddt`) | Bộ GD&ĐT: cấp / gỡ quyền phát hành của các trường trên Node 1 |
+| `/university` | Role `university` (`daihoc.a..c`) | Khóa chặt theo đúng Node của trường: cấp bằng PDF, đề xuất & phê duyệt thu hồi 2/3 |
+| `/student` | Role `student` (`sv001`, `sv002`...) | Hồ sơ văn bằng cá nhân, tạo link chia sẻ & mã QR SVG |
+| `/verify` | Công khai (không cần đăng nhập) | Nhà tuyển dụng xác minh PDF gốc (SHA-256) hoặc mở thẳng từ QR (`?cert=...`) |
+| `/explorer` | Công khai (không cần đăng nhập) | Block Explorer thời gian thực 4 node, soi chi tiết Block & giả lập tự khôi phục |
+
+### Tài khoản Demo mặc định (Mật khẩu chung: `Password@123`)
+- **Bộ GD&ĐT:** `bo.gddt` (hoặc `admin`)
+- **3 Trường đại học:** `daihoc.a` (Node 1), `daihoc.b` (Node 2), `daihoc.c` (Node 3)
+- **Sinh viên:** `sv001`, `sv002` (hoặc bất kỳ mã `sv...` nào mới được cấp bằng)
 
 ## Chạy
 
-Cần Node.js 22 trở lên. Không cần `npm install`.
+Cần Node.js 22 trở lên.
 
-```
+**Bước 1 — Khởi tạo và chạy 4 Node Blockchain (Cửa sổ 1):**
+```bash
 node tools/setup.js           # sinh khóa, genesis, cấu hình 3 trường + node backup (chạy lại là xóa dữ liệu cũ)
-node tools/make-pdf.js        # PDF văn bằng mẫu vào web/samples/
-node tools/start-local.js     # chạy 4 node; mở http://localhost:3001
+node tools/make-pdf.js        # tạo PDF văn bằng mẫu vào web/samples/
+node tools/start-local.js     # chạy 4 node REST API ở cổng 3001, 3002, 3003, 3100
 ```
 
-Cửa sổ khác: `node tools/check.js` (6 kịch bản demo qua API), `node --test` (24 bài kiểm thử).
+**Bước 2 — Chạy giao diện React trên Vite (Cửa sổ 2):**
+```bash
+cd web
+npm install                   # chỉ cần chạy lần đầu
+npm run dev                   # mở http://localhost:5173
+```
+
+Kiểm thử tự động: `node tools/check.js` (7 kịch bản tích hợp qua API), `node --test` (24 bài kiểm thử lõi).
 
 | Node | Địa chỉ | Vai trò |
 |---|---|---|

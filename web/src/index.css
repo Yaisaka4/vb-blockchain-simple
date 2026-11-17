@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 11% 97%;
+    --foreground: 240 6% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 11%;
+    --primary: 240 6% 11%;
+    --primary-foreground: 0 0% 99%;
+    --secondary: 240 6% 94%;
+    --secondary-foreground: 240 6% 14%;
+    --muted: 240 6% 94%;
+    --muted-foreground: 240 4% 44%;
+    --accent: 211 100% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 74% 50%;
+    --destructive-foreground: 0 0% 99%;
+    --border: 240 6% 90%;
+    --input: 240 6% 88%;
+    --ring: 211 100% 45%;
+    --radius: 0.875rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  .apple-glass {
+    @apply bg-white/75 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70 border-b border-zinc-200/70;
+  }
+
+  .apple-card {
+    @apply bg-white rounded-2xl border border-zinc-200/75 shadow-apple transition-shadow duration-300;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Tinh chỉnh SplitFlapText gọn gàng, hiển thị trọn dấu tiếng Việt không bị cắt đầu/chân chữ */
+.educhain-flap.split-flap-text {
+  font-family: "JetBrains Mono", "SF Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.educhain-flap .split-flap-text__tile {
+  width: 0.64em;
+  height: 1.44em;
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+
+.dark-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 6px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38);
+}
+
+/* Thanh cuộn mảnh kiểu macOS cho toàn ứng dụng (ẩn mũi tên 2 đầu của Windows) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(113, 113, 122, 0.26);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(113, 113, 122, 0.45);
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 6px;
+}

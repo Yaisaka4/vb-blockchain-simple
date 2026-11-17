@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const bc = require('./chain');
 
 // ---------- 1. Đọc cấu hình ----------
@@ -167,8 +168,112 @@ function submit(tx) {
   return { ok: true, message: 'Đã nhận, chờ tới lượt trường tạo block (khoảng 5 giây)' };
 }
 
+// ---------- 5b. Xác thực tài khoản (JWT Access Token + Refresh Token Rotation) ----------
+const jwtSecret = bc.sha256('vb-auth-jwt:' + (config.salt || '') + ':' + genesis.hash);
+const revokedRefreshJtis = new Set();
+const ACCESS_TTL_SEC = 15 * 60;       // 15 phút
+const REFRESH_TTL_SEC = 7 * 24 * 3600; // 7 ngày
+const DEFAULT_PASSWORD_HASH = bc.sha256('vb-pwd:' + 'Password@123');
+
+function signJwt(payload, ttlSec) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const body = Buffer.from(JSON.stringify({ ...payload, jti: crypto.randomUUID(), iat: now, exp: now + ttlSec })).toString('base64url');
+  const sig = crypto.createHmac('sha256', jwtSecret).update(`${header}.${body}`).digest('base64url');
+  return `${header}.${body}.${sig}`;
+}
+
+function verifyJwt(token, expectedUse) {
+  if (typeof token !== 'string') throw httpError(401, 'Thiếu mã xác thực JWT');
+  const parts = token.split('.');
+  if (parts.length !== 3) throw httpError(401, 'Định dạng JWT không hợp lệ');
+  const [header, body, sig] = parts;
+  const expectedSig = crypto.createHmac('sha256', jwtSecret).update(`${header}.${body}`).digest('base64url');
+  const sigBuf = Buffer.from(sig);
+  const expBuf = Buffer.from(expectedSig);
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    throw httpError(401, 'Chữ ký JWT không hợp lệ');
+  }
+  let payload;
+  try { payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')); }
+  catch { throw httpError(401, 'Nội dung JWT bị hỏng'); }
+  if (!payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) {
+    throw httpError(401, expectedUse === 'refresh' ? 'Refresh Token đã hết hạn, vui lòng đăng nhập lại' : 'Access Token đã hết hạn');
+  }
+  if (expectedUse && payload.tokenUse !== expectedUse) {
+    throw httpError(401, 'Loại token không hợp lệ');
+  }
+  return payload;
+}
+
+function resolveAccount(rawUsername) {
+  const uname = String(rawUsername || '').trim().toLowerCase();
+  const validators = genesis.transactions[0].validators || [];
+  const fixed = {
+    'bo.gddt': { id: 'usr-ministry', username: 'bo.gddt', role: 'ministry', displayName: 'Bộ Giáo dục và Đào tạo', subtitle: 'Cơ quan Quản lý Nhà nước · Khóa Admin' },
+    'admin': { id: 'usr-ministry', username: 'bo.gddt', role: 'ministry', displayName: 'Bộ Giáo dục và Đào tạo', subtitle: 'Cơ quan Quản lý Nhà nước · Khóa Admin' },
+    'daihoc.a': { id: 'usr-school-0', username: 'daihoc.a', role: 'university', schoolIndex: 0, displayName: validators[0]?.name || 'Đại học A', subtitle: 'Hội đồng Cấp phát Văn bằng · Node 1' },
+    'daihoc.b': { id: 'usr-school-1', username: 'daihoc.b', role: 'university', schoolIndex: 1, displayName: validators[1]?.name || 'Đại học B', subtitle: 'Hội đồng Cấp phát Văn bằng · Node 2' },
+    'daihoc.c': { id: 'usr-school-2', username: 'daihoc.c', role: 'university', schoolIndex: 2, displayName: validators[2]?.name || 'Đại học C', subtitle: 'Hội đồng Cấp phát Văn bằng · Node 3' },
+    'sv001': { id: 'usr-sv001', username: 'sv001', role: 'student', studentId: 'SV001', displayName: 'Nguyễn Văn An', subtitle: 'Sinh viên · Mã SV: SV001' },
+    'sv002': { id: 'usr-sv002', username: 'sv002', role: 'student', studentId: 'SV002', displayName: 'Trần Thị Bình', subtitle: 'Sinh viên · Mã SV: SV002' },
+  };
+  if (fixed[uname]) return fixed[uname];
+  if (/^sv[a-z0-9_-]{2,20}$/i.test(uname)) {
+    const code = uname.toUpperCase();
+    return { id: 'usr-' + uname, username: uname, role: 'student', studentId: code, displayName: 'Sinh viên ' + code, subtitle: 'Sinh viên · Mã SV: ' + code };
+  }
+  return null;
+}
+
+function issueTokenPair(user, accessTtl = ACCESS_TTL_SEC) {
+  const accessToken = signJwt({ sub: user.id, tokenUse: 'access', user }, accessTtl);
+  const refreshToken = signJwt({ sub: user.id, tokenUse: 'refresh', user }, REFRESH_TTL_SEC);
+  return { accessToken, refreshToken, tokenType: 'Bearer', expiresIn: accessTtl, refreshExpiresIn: REFRESH_TTL_SEC, user };
+}
+
+function bearerToken(req) {
+  const header = (req && req.headers && req.headers.authorization) || '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) throw httpError(401, 'Thiếu header Authorization Bearer');
+  return match[1].trim();
+}
+
 // Bảng định tuyến: [phương thức, đường dẫn (regex), hàm xử lý(body, tham số trong URL)]
 const routes = [
+  ['POST', /^\/auth\/login$/, (b) => {
+    const user = resolveAccount(b.username);
+    const pwdHash = bc.sha256('vb-pwd:' + String(b.password || ''));
+    const a = Buffer.from(pwdHash);
+    const e = Buffer.from(DEFAULT_PASSWORD_HASH);
+    if (!user || a.length !== e.length || !crypto.timingSafeEqual(a, e)) {
+      throw httpError(401, 'Tên đăng nhập hoặc mật khẩu không chính xác');
+    }
+    const ttl = b.shortLived ? 20 : ACCESS_TTL_SEC;
+    return issueTokenPair(user, ttl);
+  }],
+  ['POST', /^\/auth\/refresh$/, (b) => {
+    const payload = verifyJwt(b.refreshToken, 'refresh');
+    if (revokedRefreshJtis.has(payload.jti)) {
+      throw httpError(401, 'Refresh Token đã được sử dụng hoặc bị thu hồi');
+    }
+    revokedRefreshJtis.add(payload.jti);
+    const ttl = b.shortLived ? 20 : ACCESS_TTL_SEC;
+    return issueTokenPair(payload.user, ttl);
+  }],
+  ['GET', /^\/auth\/me$/, (b, req) => {
+    const payload = verifyJwt(bearerToken(req), 'access');
+    return { user: payload.user, issuedAt: payload.iat * 1000, expiresAt: payload.exp * 1000 };
+  }],
+  ['POST', /^\/auth\/logout$/, (b) => {
+    if (b.refreshToken) {
+      try {
+        const payload = verifyJwt(b.refreshToken, 'refresh');
+        revokedRefreshJtis.add(payload.jti);
+      } catch { /* token đã hết hạn thì bỏ qua */ }
+    }
+    return { ok: true, message: 'Đã đăng xuất thành công' };
+  }],
   ['GET', /^\/info$/, () => ({ name, readonly: !!config.readonly, height: tip().index, ...status,
     isIssuer: !!state.issuers[myKey], hasAdminKey: !!config.adminKey })],
   ['GET', /^\/chain$/, () => ({ name, readonly: !!config.readonly, height: tip().index, ...status, chain, mempool })],
@@ -264,8 +369,8 @@ function serveWeb(url, res) {
 const server = http.createServer(async (req, res) => {
   // Cho phép trang web ở địa chỉ khác gọi API (CORS)
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.end();
 
   let code = 200, result;
@@ -282,7 +387,7 @@ const server = http.createServer(async (req, res) => {
       if (raw.length > 15e6) throw httpError(413, 'File quá lớn');
     }
     const params = url.match(route[1]).slice(1).map(decodeURIComponent);
-    result = route[2](raw ? JSON.parse(raw) : {}, ...params);
+    result = route[2](raw ? JSON.parse(raw) : {}, ...params, req);
   } catch (e) {
     code = e.code || 500;
     result = { error: e.message };

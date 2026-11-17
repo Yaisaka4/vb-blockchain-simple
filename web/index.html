@@ -1,35 +1,21 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Xác thực văn bằng</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <!-- TRANG CHỦ: chọn vai trò. Mỗi vai trò là một trang riêng. -->
-  <header class="hero">
-    <h1>Xác thực văn bằng trên Blockchain</h1>
-    <p>Văn bằng được các trường cùng ghi vào một cuốn sổ chung, không ai sửa lén được. Bạn là ai?</p>
-  </header>
-  <main class="roles">
-    <a class="role bo" href="bo.html">
-      <b>Bộ GD&amp;ĐT</b>
-      <span>Cấp hoặc gỡ quyền phát hành văn bằng cho các trường</span>
-    </a>
-    <a class="role truong" href="truong.html">
-      <b>Trường đại học</b>
-      <span>Cấp văn bằng cho sinh viên, thu hồi khi phát hiện gian lận</span>
-    </a>
-    <a class="role sv" href="sinh-vien.html">
-      <b>Sinh viên</b>
-      <span>Xem văn bằng của mình, tạo link và mã QR gửi nhà tuyển dụng</span>
-    </a>
-    <a class="role ntd" href="tuyen-dung.html">
-      <b>Nhà tuyển dụng</b>
-      <span>Kiểm tra văn bằng thật hay giả — không cần hỏi lại trường</span>
-    </a>
-  </main>
-  <p class="foot"><a href="explorer.html">Block Explorer</a> — xem cuốn sổ chung trên từng máy (dành cho kỹ thuật)</p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <title>EduChain — Quản lý & Xác thực Văn bằng Blockchain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="/config.js"></script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-zinc-900 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
