@@ -61,6 +61,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const isLoginPage = location.pathname === '/login';
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -145,10 +146,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   }, [activePath]);
 
   useLayoutEffect(() => {
+    if (isLoginPage) return;
     updatePill();
-  }, [updatePill, navItems, scrolled]);
+  }, [updatePill, navItems, scrolled, isLoginPage]);
 
   useEffect(() => {
+    if (isLoginPage) return;
     const navEl = navRef.current;
     if (!navEl) return;
     const ro = new ResizeObserver(() => updatePill());
@@ -161,7 +164,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       ro.disconnect();
       window.removeEventListener('resize', updatePill);
     };
-  }, [updatePill, navItems]);
+  }, [updatePill, navItems, isLoginPage]);
 
   const formatCountdown = (sec: number | null) => {
     if (sec === null) return '--:--';
@@ -213,15 +216,17 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         />
       </div>
 
-      {/* Khoảng đệm cố định giữ luồng trang không bị giật */}
-      <div className="h-[64px] md:h-[68px] shrink-0" />
+      {!isLoginPage && (
+        <>
+          {/* Khoảng đệm cố định giữ luồng trang không bị giật */}
+          <div className="h-[64px] md:h-[68px] shrink-0" />
 
-      {/* Thanh Điều Hướng: Đính Top -> Thu thành Khối nổi (Floating Island) khi cuộn xuống */}
-      <header
-        className={`fixed inset-x-0 top-0 z-50 pointer-events-none transition-all duration-300 ease-apple ${
-          scrolled ? 'pt-2.5 px-3 sm:px-6' : 'pt-0 px-0'
-        }`}
-      >
+          {/* Thanh Điều Hướng: Đính Top -> Thu thành Khối nổi (Floating Island) khi cuộn xuống */}
+          <header
+            className={`fixed inset-x-0 top-0 z-50 pointer-events-none transition-all duration-300 ease-apple ${
+              scrolled ? 'pt-2.5 px-3 sm:px-6' : 'pt-0 px-0'
+            }`}
+          >
         <div
           className={`pointer-events-auto mx-auto transition-all duration-300 ease-apple ${
             scrolled
@@ -404,7 +409,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+          </header>
+        </>
+      )}
 
       {/* Nội dung trang */}
       <main className="relative z-10 flex-1">{children}</main>
@@ -413,11 +420,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       <BottomRightDock />
 
       {/* Footer tối giản */}
-      <footer className="relative z-10 border-t border-zinc-200/75 bg-white/70 backdrop-blur-md py-5 mt-16">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 text-center text-sm font-medium text-zinc-600">
-          Nhóm 9 - BlockChain quản lý văn bằng
-        </div>
-      </footer>
+      {!isLoginPage && (
+        <footer className="relative z-10 border-t border-zinc-200/75 bg-white/70 backdrop-blur-md py-5 mt-16">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8 text-center text-sm font-medium text-zinc-600">
+            Nhóm 9 - BlockChain quản lý văn bằng
+          </div>
+        </footer>
+      )}
 
       {/* Hộp thoại Kiểm tra Phiên JWT & Xoay vòng Refresh Token (Chuẩn Apple Inspector) */}
       <Dialog open={jwtDialogOpen} onOpenChange={setJwtDialogOpen}>
