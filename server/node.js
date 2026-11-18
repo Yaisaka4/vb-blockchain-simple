@@ -352,12 +352,18 @@ function serveEvidence(hash, res) {
   fs.createReadStream(file).pipe(res);
 }
 
-// Phục vụ các file giao diện trong thư mục web/
+// Phục vụ giao diện: bản build React ở web/dist (sau `npm run build`), config.js và samples/ ở web/
 const webDir = path.join(__dirname, '..', 'web');
-const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.pdf': 'application/pdf' };
+const distDir = path.join(webDir, 'dist');
+const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.pdf': 'application/pdf',
+  '.png': 'image/png', '.svg': 'image/svg+xml' };
+const isFile = (f) => fs.existsSync(f) && fs.statSync(f).isFile();
 function serveWeb(url, res) {
-  const file = path.join(webDir, path.normalize(url === '/' ? '/index.html' : url));
-  if (!file.startsWith(webDir) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+  const rel = path.normalize(url === '/' ? '/index.html' : url);
+  let file = [distDir, webDir].map((d) => path.join(d, rel)).find((f) => f.startsWith(webDir) && isFile(f));
+  // Trang của React (/verify, /student...) không có file riêng: trả index.html để React tự định tuyến
+  if (!file && !path.extname(rel) && isFile(path.join(distDir, 'index.html'))) file = path.join(distDir, 'index.html');
+  if (!file) {
     res.writeHead(404);
     return res.end('Not found');
   }
