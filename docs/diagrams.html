@@ -40,7 +40,7 @@
 <svg id="h2-kien-truc" width="1000" height="470">
   <text x="500" y="26" class="t c">Hình 1. Kiến trúc: một máy, mỗi node một cổng</text>
   <rect x="20" y="45" width="960" height="70" rx="10" class="box"/>
-  <text x="500" y="72" class="b c">Trình duyệt (HTML + CSS + JS)</text>
+  <text x="500" y="72" class="b c">Giao diện React trong trình duyệt (localhost:5173)</text>
   <text x="500" y="94" class="c s">Bộ GD&amp;ĐT · Trường · Sinh viên · Nhà tuyển dụng · Explorer</text>
   <g transform="translate(20,230)">
     <rect width="200" height="120" rx="10" class="school"/>
@@ -77,7 +77,7 @@
   <path d="M700,290 L780,290" class="dash" marker-end="url(#arrO)"/>
   <path d="M120,350 C120,400 600,400 600,350" class="sync" marker-start="url(#arrG)" marker-end="url(#arrG)"/>
   <text x="500" y="430" class="c s">Đồng bộ qua HTTP: block mới → POST /blocks sang các node; mỗi 3 giây GET /chain lấy chain dài nhất hợp lệ.</text>
-  <text x="500" y="450" class="c s">Các trường tự gửi block và đẩy chain lên node backup. Sinh viên và nhà tuyển dụng đọc từ node đang mở trang.</text>
+  <text x="500" y="450" class="c s">Các trường tự gửi block và đẩy chain lên node backup. Trình duyệt tự thử nút dự phòng khi các trường tắt.</text>
 </svg>
 
 <!-- HÌNH 3: CHUỖI BLOCK -->
@@ -177,7 +177,7 @@
     <text x="90" y="30" class="b c">Nhà tuyển dụng</text>
     <text x="90" y="56" class="c s">tải file PDF</text><text x="90" y="74" class="c s">hoặc nhập mã</text><text x="90" y="92" class="c s">văn bằng</text>
   </g>
-  <text x="110" y="292" class="c s">POST /verify tới node</text><text x="110" y="308" class="c s">đang mở trang</text>
+  <text x="110" y="292" class="c s">PDF: POST /verify</text><text x="110" y="308" class="c s">Mã: GET /certificates/{id}</text>
   <g class="s">
     <rect x="400" y="55" width="280" height="60" rx="8" class="school"/><text x="410" y="78" class="b">Node 1 · ĐH A</text><text x="410" y="98">localhost:3001</text>
     <rect x="400" y="135" width="280" height="60" rx="8" class="school"/><text x="410" y="158" class="b">Node 2 · ĐH B</text><text x="410" y="178">localhost:3002</text>
@@ -281,7 +281,7 @@
 
   <!-- Sinh viên -->
   <path d="M420,575 L540,575 L540,618" class="line" marker-end="url(#arr)"/>
-  <rect x="455" y="618" width="170" height="54" rx="14" class="a"/><text x="540" y="641" class="ac">Tra cứu bằng mã SV,</text><text x="540" y="659" class="ac">tạo link hoặc QR</text>
+  <rect x="455" y="618" width="170" height="54" rx="14" class="a"/><text x="540" y="641" class="ac">Mở hồ sơ đã đăng nhập,</text><text x="540" y="659" class="ac">tạo link hoặc QR</text>
   <path d="M540,672 L540,708" class="line" marker-end="url(#arr)"/>
   <rect x="455" y="708" width="170" height="54" rx="14" class="a"/><text x="540" y="731" class="ac">Nộp hồ sơ xin việc:</text><text x="540" y="749" class="ac">file PDF + link/QR</text>
 
