@@ -76,8 +76,9 @@ export const UniversityPage: React.FC = () => {
   const [offline, setOffline] = useState(false);
   const [issuedCerts, setIssuedCerts] = useState<CertificateRecord[]>([]);
   const [revokeRequests, setRevokeRequests] = useState<RevokeRequestItem[]>([]);
-  const [waitingBlock, setWaitingBlock] = useState(false);
+  const [waitFromHeight, setWaitFromHeight] = useState<number | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const waitingBlock = waitFromHeight !== null;
 
   const issueFileRef = useRef<HTMLInputElement | null>(null);
   const evidenceFileRef = useRef<HTMLInputElement | null>(null);
@@ -112,6 +113,7 @@ export const UniversityPage: React.FC = () => {
       ]);
       setNodeInfo(info);
       setRevokeRequests(reqs);
+      setWaitFromHeight((prev) => (prev !== null && info.height > prev ? null : prev));
       setOffline(false);
       appAlert.dismiss('uni-offline');
 
@@ -165,7 +167,7 @@ export const UniversityPage: React.FC = () => {
         pdfBase64,
       });
       appAlert.success(`Đã ký phát hành ${values.certId}`, { description: res.message });
-      setWaitingBlock(true);
+      setWaitFromHeight(nodeInfo?.height ?? 0);
     } catch (err: unknown) {
       appAlert.error('Cấp văn bằng thất bại', {
         description: err instanceof Error ? err.message : undefined,
@@ -182,7 +184,7 @@ export const UniversityPage: React.FC = () => {
         evidenceName: values.evidenceFile.name,
       });
       appAlert.success(`Đã gửi yêu cầu thu hồi ${values.certId}`, { description: res.message });
-      setWaitingBlock(true);
+      setWaitFromHeight(nodeInfo?.height ?? 0);
     } catch (err: unknown) {
       appAlert.error('Gửi yêu cầu thu hồi thất bại', {
         description: err instanceof Error ? err.message : undefined,
@@ -195,7 +197,7 @@ export const UniversityPage: React.FC = () => {
     try {
       const res = await approveRevokeCertificate(nodeUrl, certId);
       appAlert.success(`Đã ký chấp thuận thu hồi ${certId}`, { description: res.message });
-      setWaitingBlock(true);
+      setWaitFromHeight(nodeInfo?.height ?? 0);
     } catch (err: unknown) {
       appAlert.error('Không thể phê duyệt thu hồi', {
         description: err instanceof Error ? err.message : undefined,
@@ -255,7 +257,7 @@ export const UniversityPage: React.FC = () => {
         active={waitingBlock}
         onComplete={() => {
           loadAll();
-          window.setTimeout(() => setWaitingBlock(false), 1200);
+          window.setTimeout(() => setWaitFromHeight(null), 800);
         }}
       />
 
@@ -596,14 +598,13 @@ export const UniversityPage: React.FC = () => {
                     Hiện không có yêu cầu thu hồi văn bằng nào đang chờ duyệt.
                   </div>
                 ) : (
-                  <Table className="min-w-[600px]">
+                  <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Văn bằng</TableHead>
-                        <TableHead>Trường yêu cầu & Lý do</TableHead>
-                        <TableHead>Bằng chứng</TableHead>
-                        <TableHead>Đồng thuận</TableHead>
-                        <TableHead className="text-right">Quyết định</TableHead>
+                        <TableHead className="w-[108px]">Văn bằng</TableHead>
+                        <TableHead>Trường yêu cầu, Lý do & Bằng chứng</TableHead>
+                        <TableHead className="w-[96px]">Đồng thuận</TableHead>
+                        <TableHead className="text-right w-[128px]">Quyết định</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -613,32 +614,37 @@ export const UniversityPage: React.FC = () => {
                         const evidenceLink = `${net.schools[req.requester]}/evidence/${req.evidenceHash}`;
                         return (
                           <TableRow key={req.certId}>
-                            <TableCell className="font-mono font-semibold whitespace-nowrap">{req.certId}</TableCell>
-                            <TableCell>
+                            <TableCell className="font-mono font-semibold text-[13px] whitespace-nowrap align-top">
+                              {req.certId}
+                            </TableCell>
+                            <TableCell className="align-top space-y-1.5">
                               <div className="font-medium text-zinc-900">
                                 {SCHOOL_NAMES[req.requester] || req.issuerName}
                               </div>
-                              <div className="text-[13px] text-zinc-500 max-w-xs mt-0.5">{req.reason}</div>
+                              <div className="text-[13px] text-zinc-600 leading-snug break-words">
+                                {req.reason}
+                              </div>
+                              <div>
+                                <a
+                                  href={evidenceLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-md border border-sky-200/80 bg-sky-50/70 px-2 py-0.5 text-xs font-medium text-[#0071E3] hover:bg-sky-100/70 transition-colors max-w-full"
+                                >
+                                  <FileText className="h-3 w-3 shrink-0" />
+                                  <span className="truncate max-w-[200px]">{req.evidenceName}</span>
+                                  <ExternalLink className="h-3 w-3 shrink-0" />
+                                </a>
+                              </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <a
-                                href={evidenceLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-[13px] font-medium text-[#0071E3] hover:underline"
-                              >
-                                <span>{req.evidenceName}</span>
-                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                              </a>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
+                            <TableCell className="whitespace-nowrap align-top">
                               <Badge variant="warning" className="font-mono tabular">
                                 {1 + req.approvals.length}/{req.needed} trường
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right whitespace-nowrap">
+                            <TableCell className="text-right whitespace-nowrap align-top">
                               {isRequester ? (
-                                <span className="text-xs font-medium text-zinc-400">Chờ trường khác duyệt</span>
+                                <span className="text-xs font-medium text-zinc-400">Chờ duyệt</span>
                               ) : alreadyApproved ? (
                                 <Badge variant="success">Đã ký duyệt</Badge>
                               ) : (

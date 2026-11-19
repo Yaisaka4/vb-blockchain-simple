@@ -21,11 +21,13 @@ import { Button } from '@/components/ui/button';
 interface CertificateResultCardProps {
   record: CertificateRecord;
   answeredByLabel?: string;
+  mode?: 'pdf' | 'code';
 }
 
 export const CertificateResultCard: React.FC<CertificateResultCardProps> = ({
   record,
   answeredByLabel,
+  mode = 'pdf',
 }) => {
   const copyHash = (hash?: string) => {
     if (!hash) return;
@@ -51,12 +53,14 @@ export const CertificateResultCard: React.FC<CertificateResultCardProps> = ({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base sm:text-lg font-semibold text-zinc-900">
-                  Văn bằng Hợp lệ & Nguyên vẹn
+                  {mode === 'code' ? 'Văn bằng Hợp lệ (Tra cứu Mã hiệu)' : 'Văn bằng Hợp lệ & Nguyên vẹn'}
                 </h3>
                 <Badge variant="success">Xác thực On-chain</Badge>
               </div>
               <p className="text-sm text-zinc-600 mt-1">
-                Chữ ký số ECDSA của trường đại học và mã băm SHA-256 trùng khớp trên Blockchain.
+                {mode === 'code'
+                  ? 'Bản ghi văn bằng đang có hiệu lực trên Blockchain. Hãy kéo thả tệp PDF gốc vào khung Cách 1 để kiểm chứng nội dung tệp nguyên vẹn.'
+                  : 'Chữ ký số ECDSA của trường đại học và mã băm SHA-256 trùng khớp trên Blockchain.'}
               </p>
             </div>
           </div>
@@ -118,7 +122,9 @@ export const CertificateResultCard: React.FC<CertificateResultCardProps> = ({
           <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 flex items-start gap-3">
             <FileWarning className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-sm text-amber-900 space-y-1">
-              <p className="font-semibold">Đang có yêu cầu thu hồi chờ hội đồng các trường phê duyệt</p>
+              <p className="font-semibold">
+                Đang có yêu cầu thu hồi chờ hội đồng các trường phê duyệt ({1 + (record.revokeRequest.approvals?.length ?? 0)}/2 trường)
+              </p>
               <p>Lý do đề xuất: {record.revokeRequest.reason}</p>
             </div>
           </div>

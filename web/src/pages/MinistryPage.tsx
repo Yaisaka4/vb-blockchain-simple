@@ -45,8 +45,9 @@ export const MinistryPage: React.FC = () => {
   const [nodeInfo, setNodeInfo] = useState<NodeInfo | null>(null);
   const [data, setData] = useState<IssuersResponse | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
-  const [waitingBlock, setWaitingBlock] = useState(false);
+  const [waitFromHeight, setWaitFromHeight] = useState<number | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<{ publicKey: string; name: string } | null>(null);
+  const waitingBlock = waitFromHeight !== null;
 
   const loadData = useCallback(async () => {
     try {
@@ -56,6 +57,7 @@ export const MinistryPage: React.FC = () => {
       ]);
       setNodeInfo(info);
       setData(issuers);
+      setWaitFromHeight((prev) => (prev !== null && info.height > prev ? null : prev));
       appAlert.dismiss('ministry-offline');
     } catch {
       appAlert.error('Không kết nối được Node 1 (Máy chủ Bộ GD&ĐT)', {
@@ -80,7 +82,7 @@ export const MinistryPage: React.FC = () => {
     try {
       const res = await grantIssuer(publicKey, name);
       appAlert.success(`Đã ký lệnh cấp quyền cho ${name}`, { description: res.message });
-      setWaitingBlock(true);
+      setWaitFromHeight(nodeInfo?.height ?? 0);
     } catch (err: unknown) {
       appAlert.error('Không thể cấp quyền', {
         description: err instanceof Error ? err.message : undefined,
@@ -99,7 +101,7 @@ export const MinistryPage: React.FC = () => {
         description: res.message,
       });
       setRevokeTarget(null);
-      setWaitingBlock(true);
+      setWaitFromHeight(nodeInfo?.height ?? 0);
     } catch (err: unknown) {
       appAlert.error('Không thể gỡ quyền', {
         description: err instanceof Error ? err.message : undefined,
@@ -149,7 +151,7 @@ export const MinistryPage: React.FC = () => {
         active={waitingBlock}
         onComplete={() => {
           loadData();
-          window.setTimeout(() => setWaitingBlock(false), 1200);
+          window.setTimeout(() => setWaitFromHeight(null), 800);
         }}
       />
 

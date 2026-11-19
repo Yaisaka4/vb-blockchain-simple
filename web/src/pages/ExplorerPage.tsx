@@ -364,7 +364,19 @@ export const ExplorerPage: React.FC = () => {
                     Khóa công khai Validator ký đóng khối:
                   </span>
                   <span className="text-zinc-700 break-all">
-                    {shortHash(selectedBlock.block.validator, 20, 20)}
+                    {selectedBlock.block.validator === '0'
+                      ? '0 (Khối khởi tạo Genesis)'
+                      : shortHash(selectedBlock.block.validator, 20, 20)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-zinc-500 block font-sans font-medium mb-0.5">
+                    Chữ ký số ECDSA đóng khối (signature):
+                  </span>
+                  <span className="text-zinc-700 break-all">
+                    {selectedBlock.block.signature
+                      ? shortHash(selectedBlock.block.signature, 24, 24)
+                      : 'Khối khởi tạo (Genesis — không có chữ ký validator)'}
                   </span>
                 </div>
               </div>

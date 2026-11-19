@@ -282,6 +282,7 @@ export const VerifyPage: React.FC = () => {
           <CertificateResultCard
             record={activeResult.record}
             answeredByLabel={activeResult.nodeLabel}
+            mode={activeResult.mode}
           />
         </div>
       )}
